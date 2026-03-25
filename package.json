@@ -3,5 +3,5 @@
   "version": "1.0.0",
   "description": "PL India UI Pattern Research Hub",
   "private": true,
-  "engines": { "node": "18.x" }
+  "engines": { "node": "24.x" }
 }
