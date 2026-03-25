@@ -735,6 +735,28 @@ function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 async function doChat(query){
   const KEYS=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
 
+  // Use /api/live-compare which combines Tavily live search + Claude analysis
+  if(IS_HOSTED){
+    try{
+      const body={pattern:query, user_key:API_KEY||''};
+      const res=await fetch('/api/live-compare',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      const d=await res.json();
+      if(!res.ok) throw new Error(d?.error||'API error '+res.status);
+      if(!d.brokers||d.brokers.length<4) throw new Error('Incomplete response');
+      // Fill any missing brokers
+      KEYS.forEach(k=>{if(!d.brokers.find(b=>b.key===k)) d.brokers.push({key:k,rank:d.brokers.length+1,visual:7,ease:7,speed:7,clarity:7,overall:7,f1:false,f2:false,f3:false,f4:false,standout:'Standard',verdict:'Average for this pattern',weakness:'Needs improvement'});});
+      d.brokers.sort((a,b)=>a.rank-b.rank);
+      return d;
+    }catch(err){
+      throw new Error(err.message||'Live compare failed');
+    }
+  }
+
+  // Local fallback — direct Claude call
   // Ask Claude for JSON — simple flat structure, query-specific features
   const prompt=`You are a UI/UX expert for Indian stock trading and investment apps.
 The user wants to compare the UI pattern: "${query}"
@@ -1187,27 +1209,59 @@ function toggleBkm(id){const i=feedItems.find(x=>x.id===id);if(i){i.bookmarked=!
 function delCard(id){if(!confirm('Remove?'))return;feedItems=feedItems.filter(x=>x.id!==id);renderFeed();updateStats();}
 async function runScan(){
   const btn=document.getElementById('scanBtn');btn.disabled=true;btn.innerHTML='<span class="spin">⟳</span> Scanning…';
-  const prompt=`Find 3 recent UI/UX feature updates from Indian stock brokers.
-Reply in pipe format, 3 lines only:
-broker_key|platform|feature name|type|impact|description|PL India tip|source name|source type
-broker_key: zerodha groww upstox dhan angel indmoney paytm fyers
-platform: web apk both  type: ui ux feature both  impact: 1-5`;
+  const keys=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
+  let added=0;
   try{
-    const text=await callAI([{role:'user',content:prompt}],600);
+    // Step 1: If hosted, use Tavily live search for each broker
+    if(IS_HOSTED){
+      for(const broker of keys.slice(0,4)){// scan 4 brokers per run to save API credits
+        try{
+          const sRes=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({broker, query:'new feature UI update'})});
+          if(!sRes.ok) continue;
+          const sData=await sRes.json();
+          // Take top result per broker
+          const top=sData.results?.[0];
+          if(top && top.title && top.content){
+            feedItems.unshift({
+              id:'live_'+Date.now()+'_'+added,
+              broker,platform:'both',
+              name:top.title.slice(0,80),
+              type:'feature',impact:4,
+              desc:top.content.slice(0,200)+'...',
+              adopt:'Evaluate this update for PL India adoption.',
+              source:top.source||'Web',
+              sourceType:'Live Search',
+              sourceUrl:top.url||null,
+              isNew:true,bookmarked:false,
+              time:'Just now',isAI:true,
+              published:top.published_date||''
+            });
+            added++;
+          }
+        }catch(e){console.warn('Search failed for',broker,e.message);}
+      }
+    }
+    // Step 2: Also use Claude to suggest any known recent updates
+    const prompt=`Name 3 recent real UI/UX updates from Indian brokers in 2025.
+Reply pipe format 3 lines only:
+broker_key|platform|feature name|type|impact 1-5|description 1 sentence|PL India tip|source
+broker_key: zerodha groww upstox dhan angel indmoney paytm fyers
+platform: web apk both  type: ui ux feature`;
+    const text=await callAI([{role:'user',content:prompt}],500);
     const lines=text.trim().split('\n').filter(l=>l.includes('|'));
-    const keys=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
-    let added=0;
     for(const line of lines){
       const p=line.split('|');
       if(p.length>=6&&keys.includes(p[0]?.trim().toLowerCase())){
-        feedItems.unshift({id:'ai_'+Date.now()+'_'+added,broker:p[0].trim().toLowerCase(),platform:p[1]?.trim()||'both',
-          name:p[2]?.trim()||'New UI Update',type:p[3]?.trim()||'feature',impact:parseInt(p[4])||3,
-          desc:p[5]?.trim()||'',adopt:p[6]?.trim()||'',source:p[7]?.trim()||'AI Scan',
-          sourceType:p[8]?.trim()||'AI Scan',sourceUrl:null,isNew:true,bookmarked:false,time:'Just now',isAI:true});
+        feedItems.unshift({id:'ai_'+Date.now()+'_'+added,broker:p[0].trim().toLowerCase(),
+          platform:p[1]?.trim()||'both',name:p[2]?.trim()||'New Update',type:p[3]?.trim()||'feature',
+          impact:parseInt(p[4])||3,desc:p[5]?.trim()||'',adopt:p[6]?.trim()||'',
+          source:p[7]?.trim()||'AI Knowledge',sourceType:'AI',sourceUrl:null,
+          isNew:true,bookmarked:false,time:'Just now',isAI:true});
         added++;
       }
     }
-    if(added>0){renderFeed();updateStats();toast('🤖 AI Scan Done',`Found ${added} new updates`,'green');}
+    if(added>0){renderFeed();updateStats();toast('🔍 Scan Done',`Found ${added} live + AI updates`,'green');}
     else toast('ℹ️ No new items','Try again or add manually','orange');
   }catch(e){toast('⚠️ Scan Error',e.message,'red');}
   btn.disabled=false;btn.innerHTML='⚡ AI Scan';
