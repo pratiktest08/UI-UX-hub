@@ -1,0 +1,7 @@
+{
+  "name": "plindia-ui-research-hub",
+  "version": "1.0.0",
+  "description": "PL India UI Pattern Research Hub",
+  "private": true,
+  "engines": { "node": "18.x" }
+}

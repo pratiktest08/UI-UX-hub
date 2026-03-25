@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PL India — UI Research Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0F0F83;--navy2:#272756;--violet:#4C4CCC;--green:#1FB15A;--green2:#17963f;
+  --bg:#0d0d2e;--bg2:#111138;--bg3:#161648;--sidebar:#09091f;
+  --card:#141442;--card2:#1a1a52;
+  --border:rgba(76,76,204,.18);--bord2:rgba(76,76,204,.35);
+  --text:#e4e8ff;--text2:#9098c8;--muted:#565c88;
+  --gold:#f5b800;--red:#ff4560;--orange:#ff8c42;--cyan:#00cfff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;display:flex;flex-direction:column;height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(76,76,204,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,76,204,.03) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+
+/* ── TOPNAV ── */
+.topnav{flex-shrink:0;display:flex;align-items:center;height:52px;border-bottom:1px solid var(--border);background:rgba(9,9,31,.97);backdrop-filter:blur(20px);position:relative;z-index:100;}
+.tn-brand{width:220px;flex-shrink:0;padding:0 18px;display:flex;align-items:center;gap:9px;border-right:1px solid var(--border);height:100%;}
+.tn-gem{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--violet),var(--navy));display:flex;align-items:center;justify-content:center;font-size:.75rem;}
+.tn-name{font-weight:700;font-size:.88rem;}
+.tn-tabs{display:flex;align-items:center;height:100%;padding:0 6px;}
+.tn-tab{display:flex;align-items:center;gap:6px;padding:0 14px;height:100%;font-size:.78rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .14s;white-space:nowrap;}
+.tn-tab:hover{color:var(--text);}
+.tn-tab.act{color:var(--green);font-weight:700;border-color:var(--green);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:plz 1.5s infinite;}
+@keyframes plz{0%,100%{opacity:1;}50%{opacity:.25;}}
+.tn-right{display:flex;align-items:center;gap:8px;padding:0 14px;margin-left:auto;border-left:1px solid var(--border);height:100%;}
+.api-wrap{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 9px;transition:border-color .18s;}
+.api-wrap:focus-within{border-color:var(--violet);}
+.api-input{background:transparent;border:none;outline:none;color:var(--text);font-family:'Figtree',sans-serif;font-size:.72rem;width:190px;}
+.api-input::placeholder{color:var(--muted);}
+.api-btn{padding:3px 10px;border-radius:6px;background:linear-gradient(135deg,var(--violet),var(--navy));border:none;color:#fff;font-family:'Figtree',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .14s;}
+.api-btn:hover{opacity:.85;}
+.api-badge{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+.api-badge.on{background:rgba(31,177,90,.1);color:var(--green);border:1px solid rgba(31,177,90,.22);}
+.api-badge.off{background:rgba(255,69,96,.07);color:var(--red);border:1px solid rgba(255,69,96,.15);}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sb-head{padding:14px 16px 8px;border-bottom:1px solid var(--border);}
+.sb-lbl{font-size:.6rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.sb-nav{flex:1;overflow-y:auto;padding:8px;}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;color:var(--muted);font-size:.8rem;font-weight:500;cursor:pointer;transition:all .13s;margin-bottom:1px;border:1px solid transparent;}
+.nav-item:hover{color:var(--text);background:rgba(76,76,204,.07);}
+.nav-item.active{color:#fff;background:linear-gradient(135deg,rgba(76,76,204,.85),rgba(15,15,131,.7));border-color:var(--bord2);font-weight:600;}
+.nav-ico{font-size:.85rem;width:17px;text-align:center;flex-shrink:0;}
+.sb-sec{font-size:.56rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 10px 4px;margin-top:4px;}
+.sb-bottom{padding:10px;border-top:1px solid var(--border);}
+.new-btn{width:100%;padding:9px;background:linear-gradient(135deg,var(--violet),var(--navy));border:none;border-radius:9px;color:#fff;font-family:'Figtree',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:opacity .14s;margin-bottom:6px;}
+.new-btn:hover{opacity:.87;}
+.sb-link{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;color:var(--muted);font-size:.74rem;cursor:pointer;transition:all .12s;}
+.sb-link:hover{color:var(--text);background:rgba(76,76,204,.06);}
+
+/* ── TABS (Chat / Compare / Roadmap) ── */
+.pane-tabs{flex-shrink:0;display:flex;border-bottom:1px solid var(--border);background:var(--bg2);}
+.ptab{padding:9px 18px;font-size:.75rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .13s;white-space:nowrap;}
+.ptab:hover{color:var(--text);}
+.ptab.active{color:var(--violet);border-color:var(--violet);}
+
+/* ── CENTER PANE ── */
+.center-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
+.tab-content{flex:1;overflow:hidden;display:none;flex-direction:column;}
+.tab-content.active{display:flex;}
+
+/* ── CHAT ── */
+.chat-msgs{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+.chat-msgs::-webkit-scrollbar{width:4px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 14px;flex:1;justify-content:center;}
+.w-bot{width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,var(--violet),var(--navy));display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin-bottom:16px;box-shadow:0 8px 28px rgba(76,76,204,.3);position:relative;}
+.w-bot-dot{position:absolute;bottom:4px;right:4px;width:11px;height:11px;border-radius:50%;background:var(--green);border:2px solid var(--bg);box-shadow:0 0 7px var(--green);}
+.w-title{font-size:1.45rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;line-height:1.2;}
+.w-sub{color:var(--text2);font-size:.82rem;max-width:400px;margin:0 auto 20px;line-height:1.65;}
+.w-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:440px;margin:0 auto 16px;}
+.w-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 13px;text-align:left;cursor:pointer;transition:all .13s;}
+.w-card:hover{border-color:var(--bord2);background:var(--card2);}
+.w-card-ico{font-size:.95rem;margin-bottom:6px;}
+.w-card-t{font-size:.78rem;font-weight:700;margin-bottom:2px;}
+.w-card-s{font-size:.68rem;color:var(--text2);line-height:1.4;}
+.w-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
+.wchip{font-size:.7rem;padding:4px 11px;border-radius:16px;border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .12s;font-weight:500;}
+.wchip:hover{border-color:var(--violet);color:var(--text);background:rgba(76,76,204,.09);}
+.msg-row{display:flex;gap:9px;align-items:flex-start;animation:fadeUp .28s ease;}
+.msg-row.user{flex-direction:row-reverse;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.av{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;}
+.av.ai{background:linear-gradient(135deg,var(--violet),var(--navy));color:#fff;}
+.av.usr{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-weight:800;}
+.bubble{max-width:86%;background:var(--card);border:1px solid var(--border);border-radius:11px 11px 11px 3px;padding:9px 12px;font-size:.8rem;line-height:1.6;}
+.msg-row.user .bubble{background:linear-gradient(135deg,rgba(76,76,204,.22),rgba(15,15,131,.16));border-color:rgba(76,76,204,.32);border-radius:11px 11px 3px 11px;}
+.typing-dots{display:flex;gap:4px;align-items:center;padding:2px 0;}
+.typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--violet);animation:db .7s infinite;}
+.typing-dots span:nth-child(2){animation-delay:.14s;}
+.typing-dots span:nth-child(3){animation-delay:.28s;}
+@keyframes db{0%,80%,100%{transform:scale(.7);opacity:.3;}40%{transform:scale(1);opacity:1;}}
+.chat-input-bar{flex-shrink:0;padding:10px 16px;border-top:1px solid var(--border);background:rgba(9,9,31,.98);}
+.cin-row{display:flex;gap:8px;align-items:flex-end;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 10px;transition:border-color .18s;}
+.cin-row:focus-within{border-color:var(--violet);}
+.cinput{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Figtree',sans-serif;font-size:.82rem;resize:none;max-height:96px;line-height:1.5;}
+.cinput::placeholder{color:var(--muted);}
+.send-btn{width:33px;height:33px;flex-shrink:0;border-radius:8px;background:linear-gradient(135deg,var(--violet),var(--navy));border:none;color:#fff;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .13s,transform .1s;}
+.send-btn:hover{opacity:.84;}
+.send-btn:active{transform:scale(.92);}
+.send-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* ── CHAT RESULT ── */
+.chat-result{margin-top:5px;width:100%;}
+.cr-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:linear-gradient(135deg,rgba(76,76,204,.13),rgba(15,15,131,.08));border:1px solid var(--bord2);border-radius:10px 10px 0 0;flex-wrap:wrap;gap:5px;}
+.cr-title{font-weight:700;font-size:.82rem;}
+.cr-win{font-size:.63rem;font-weight:700;color:var(--green);}
+.bscroll{display:flex;gap:7px;overflow-x:auto;padding:9px;border:1px solid var(--border);border-top:none;background:var(--bg2);}
+.bscroll::-webkit-scrollbar{height:3px;}
+.bscroll::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.bcard{flex-shrink:0;width:178px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .13s;}
+.bcard.r1{border-color:rgba(31,177,90,.45);}
+.bcard.r2{border-color:rgba(76,76,204,.45);}
+.bcard.r3{border-color:rgba(245,184,0,.35);}
+.bc-top{display:flex;align-items:center;justify-content:space-between;padding:7px 9px 5px;border-bottom:1px solid var(--border);}
+.bc-name{font-weight:700;font-size:.72rem;}
+.bc-score{font-weight:800;font-size:.9rem;}
+.bc-rnk{font-size:.55rem;font-weight:700;padding:2px 5px;border-radius:4px;}
+.rk1c{background:rgba(31,177,90,.1);color:var(--green);border:1px solid rgba(31,177,90,.2);}
+.rk2c{background:rgba(76,76,204,.1);color:#9090ff;border:1px solid rgba(76,76,204,.2);}
+.rk3c{background:rgba(245,184,0,.08);color:var(--gold);border:1px solid rgba(245,184,0,.18);}
+.rknc{background:rgba(86,92,136,.08);color:var(--muted);border:1px solid var(--border);}
+.mmock{padding:6px;background:rgba(8,8,30,.7);min-height:82px;font-size:.47rem;display:flex;flex-direction:column;gap:2px;}
+.mm-bar{display:flex;align-items:center;gap:3px;padding:3px 4px;border-radius:4px;background:rgba(76,76,204,.07);border:1px solid rgba(76,76,204,.11);color:rgba(255,255,255,.22);}
+.mm-pills{display:flex;gap:2px;margin:1px 0;}
+.mm-pill{font-size:.41rem;padding:1px 4px;border-radius:4px;font-weight:700;}
+.mm-row{display:flex;align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid rgba(76,76,204,.07);}
+.mm-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.35rem;font-weight:800;}
+.mm-sname{flex:1;font-size:.47rem;font-weight:600;}
+.mm-price{font-size:.44rem;font-weight:600;}
+.mm-chg{font-size:.38rem;}
+.up{color:var(--green);}
+.dn{color:var(--red);}
+.bc-tags{display:flex;flex-wrap:wrap;gap:3px;padding:5px 7px;border-top:1px solid var(--border);}
+.btag{font-size:.5rem;padding:1px 4px;border-radius:4px;font-weight:600;}
+.bty{background:rgba(31,177,90,.07);color:var(--green);border:1px solid rgba(31,177,90,.12);}
+.btn2{background:rgba(255,69,96,.05);color:var(--red);border:1px solid rgba(255,69,96,.1);}
+.bc-verdict{padding:5px 7px;font-size:.62rem;color:var(--text2);line-height:1.5;border-top:1px solid var(--border);}
+.rank-mini{border:1px solid var(--border);border-top:none;overflow:hidden;background:var(--bg2);}
+.rank-mini table{width:100%;border-collapse:collapse;font-size:.7rem;}
+.rank-mini th{padding:4px 9px;color:var(--muted);font-size:.57rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--border);text-align:left;}
+.rank-mini td{padding:5px 9px;border-bottom:1px solid rgba(76,76,204,.06);}
+.rank-mini tr:last-child td{border-bottom:none;}
+.rank-mini tr:hover td{background:var(--card);}
+.rn-num{font-weight:800;font-size:.76rem;}
+.rn-bar{width:52px;height:4px;background:var(--bg3);border-radius:2px;display:inline-block;vertical-align:middle;}
+.rn-fill{height:4px;border-radius:2px;}
+.pli-box{padding:9px 12px;font-size:.72rem;line-height:1.6;background:linear-gradient(135deg,rgba(31,177,90,.07),rgba(15,15,131,.04));border:1px solid rgba(31,177,90,.18);border-top:none;border-radius:0 0 10px 10px;}
+.pli-box strong{color:var(--green);}
+
+/* ── COMPARE TAB ── */
+.compare-pane{flex:1;overflow-y:auto;padding:16px;}
+.compare-pane::-webkit-scrollbar{width:4px;}
+.compare-pane::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.compare-select-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.compare-select-row select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Figtree',sans-serif;font-size:.8rem;outline:none;transition:border-color .14s;flex:1;}
+.compare-select-row select:focus{border-color:var(--violet);}
+.compare-select-row select option{background:var(--bg2);}
+.compare-run-btn{padding:8px 18px;background:linear-gradient(135deg,var(--violet),var(--navy));border:none;border-radius:8px;color:#fff;font-family:'Figtree',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .13s;}
+.compare-run-btn:hover{opacity:.87;}
+.compare-run-btn:disabled{opacity:.35;cursor:not-allowed;}
+.compare-result{display:none;}
+.compare-result.show{display:block;}
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.cmp-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.cmp-card-hd{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.cmp-av{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0;}
+.cmp-bname{font-weight:700;font-size:.88rem;}
+.cmp-score-big{font-weight:900;font-size:1.8rem;line-height:1;margin-left:auto;}
+.cmp-scores{padding:12px 14px;display:flex;flex-direction:column;gap:7px;}
+.cmp-score-row{display:flex;align-items:center;gap:8px;}
+.cmp-score-lbl{font-size:.7rem;color:var(--text2);min-width:72px;font-weight:500;}
+.cmp-bar-w{flex:1;background:var(--bg3);border-radius:3px;height:5px;}
+.cmp-bar-f{height:5px;border-radius:3px;transition:width .6s ease;}
+.cmp-score-v{font-size:.7rem;font-weight:700;min-width:24px;text-align:right;}
+.cmp-tags{display:flex;flex-wrap:wrap;gap:4px;padding:0 14px 10px;}
+.cmp-tag{font-size:.62rem;padding:2px 7px;border-radius:5px;font-weight:600;}
+.cmp-tag-y{background:rgba(31,177,90,.08);color:var(--green);border:1px solid rgba(31,177,90,.15);}
+.cmp-tag-n{background:rgba(255,69,96,.06);color:var(--red);border:1px solid rgba(255,69,96,.12);}
+.cmp-verdict{padding:8px 14px;font-size:.73rem;color:var(--text2);line-height:1.6;border-top:1px solid var(--border);background:var(--bg3);}
+.cmp-winner-bar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+.cmp-winner-title{font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.cmp-pattern-rows{display:flex;flex-direction:column;gap:6px;}
+.cmp-pat-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:var(--bg2);}
+.cmp-pat-name{font-size:.72rem;font-weight:600;min-width:110px;}
+.cmp-pat-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;}
+.cmp-pat-fill{height:4px;border-radius:2px;transition:width .6s ease;}
+.cmp-pat-win{font-size:.65rem;font-weight:700;min-width:70px;text-align:right;}
+.cmp-pli{background:linear-gradient(135deg,rgba(31,177,90,.07),rgba(15,15,131,.04));border:1px solid rgba(31,177,90,.18);border-radius:9px;padding:10px 13px;font-size:.74rem;line-height:1.6;}
+.cmp-pli strong{color:var(--green);}
+.export-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;background:var(--card2);border:1px solid var(--bord2);color:var(--text);font-family:'Figtree',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .13s;margin-bottom:12px;}
+.export-btn:hover{background:rgba(76,76,204,.15);}
+
+/* ── ROADMAP TAB ── */
+.roadmap-pane{flex:1;overflow-y:auto;padding:16px;}
+.roadmap-pane::-webkit-scrollbar{width:4px;}
+.roadmap-pane::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.rm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.rm-title{font-weight:800;font-size:.95rem;}
+.rm-add-btn{padding:6px 12px;border-radius:7px;background:linear-gradient(135deg,var(--violet),var(--navy));border:none;color:#fff;font-family:'Figtree',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;transition:opacity .13s;}
+.rm-add-btn:hover{opacity:.87;}
+.rm-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.rm-col{}
+.rm-col-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:9px 9px 0 0;margin-bottom:8px;font-size:.72rem;font-weight:700;}
+.rm-col-hd.todo{background:rgba(255,140,66,.1);color:var(--orange);border:1px solid rgba(255,140,66,.2);}
+.rm-col-hd.doing{background:rgba(76,76,204,.12);color:#9090ff;border:1px solid rgba(76,76,204,.22);}
+.rm-col-hd.done{background:rgba(31,177,90,.08);color:var(--green);border:1px solid rgba(31,177,90,.18);}
+.rm-col-count{font-size:.62rem;padding:1px 6px;border-radius:10px;background:rgba(255,255,255,.07);}
+.rm-items{display:flex;flex-direction:column;gap:7px;min-height:60px;}
+.rm-item{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 11px;cursor:grab;transition:border-color .13s,transform .13s;animation:fadeUp .25s ease;}
+.rm-item:hover{border-color:var(--bord2);transform:translateY(-1px);}
+.rm-item.dragging{opacity:.5;transform:scale(.97);}
+.rm-item-name{font-size:.78rem;font-weight:600;margin-bottom:4px;line-height:1.3;}
+.rm-item-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.rm-pill{font-size:.58rem;padding:1px 6px;border-radius:5px;font-weight:600;}
+.rm-pill-high{background:rgba(255,69,96,.08);color:var(--red);border:1px solid rgba(255,69,96,.14);}
+.rm-pill-med{background:rgba(245,184,0,.08);color:var(--gold);border:1px solid rgba(245,184,0,.15);}
+.rm-pill-low{background:rgba(86,92,136,.1);color:var(--muted);border:1px solid var(--border);}
+.rm-pill-broker{background:rgba(76,76,204,.08);color:#9090ff;border:1px solid rgba(76,76,204,.15);}
+.rm-item-del{margin-left:auto;font-size:.65rem;color:var(--muted);cursor:pointer;padding:1px 4px;border-radius:4px;transition:all .1s;}
+.rm-item-del:hover{color:var(--red);background:rgba(255,69,96,.08);}
+.rm-progress{margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.rm-progress-title{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.rm-prog-bar{background:var(--bg3);border-radius:4px;height:8px;overflow:hidden;margin-bottom:4px;}
+.rm-prog-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--violet),var(--green));transition:width .5s ease;}
+.rm-prog-text{font-size:.68rem;color:var(--text2);}
+
+/* ── MONITOR (RIGHT) ── */
+.monitor-pane{width:365px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.mon-hd{flex-shrink:0;padding:11px 13px 0;background:var(--bg2);border-bottom:1px solid var(--border);}
+.mon-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.mon-title{font-weight:700;font-size:.86rem;display:flex;align-items:center;gap:7px;}
+.live-badge{font-size:.58rem;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:5px;background:rgba(31,177,90,.1);color:var(--green);border:1px solid rgba(31,177,90,.22);display:flex;align-items:center;gap:4px;}
+.mon-acts{display:flex;gap:5px;}
+.mact{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .12s;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'Figtree',sans-serif;}
+.mact:hover{border-color:var(--bord2);color:var(--text);}
+.mact.pri{background:linear-gradient(135deg,rgba(76,76,204,.18),rgba(15,15,131,.12));border-color:rgba(76,76,204,.35);color:#a0a8ff;}
+.mact.pri:hover{background:linear-gradient(135deg,rgba(76,76,204,.28),rgba(15,15,131,.2));}
+.mact:disabled{opacity:.35;cursor:not-allowed;}
+.mon-stats{display:flex;gap:12px;padding-bottom:8px;}
+.mstat{display:flex;align-items:center;gap:4px;font-size:.66rem;color:var(--muted);font-weight:500;}
+.mstat-v{font-weight:800;font-size:.76rem;color:var(--text);}
+.mon-filters{flex-shrink:0;display:flex;gap:4px;padding:6px 9px;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;}
+.mon-filters::-webkit-scrollbar{display:none;}
+.mf-chip{font-size:.62rem;font-weight:600;padding:3px 8px;border-radius:7px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all .11s;white-space:nowrap;}
+.mf-chip:hover,.mf-chip.active{border-color:rgba(76,76,204,.45);color:#a0a8ff;background:rgba(76,76,204,.09);}
+.mon-feed{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}
+.mon-feed::-webkit-scrollbar{width:3px;}
+.mon-feed::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.mcard{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;transition:border-color .13s,transform .13s;animation:sIn .26s ease;}
+@keyframes sIn{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);}}
+.mcard:hover{border-color:var(--bord2);transform:translateY(-1px);}
+.mcard.isnew{border-color:rgba(31,177,90,.38);box-shadow:0 0 12px rgba(31,177,90,.06);}
+.mc-hd{display:flex;align-items:flex-start;gap:8px;padding:8px 10px 6px;border-bottom:1px solid var(--border);}
+.mc-av{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.72rem;}
+.mc-meta{flex:1;min-width:0;}
+.mc-brow{display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap;}
+.mc-bname{font-weight:700;font-size:.76rem;}
+.mcpills{display:flex;gap:3px;flex-wrap:wrap;}
+.mcpill{font-size:.55rem;font-weight:600;padding:1px 5px;border-radius:4px;}
+.p-web{background:rgba(0,207,255,.07);color:var(--cyan);border:1px solid rgba(0,207,255,.15);}
+.p-apk{background:rgba(76,76,204,.09);color:#9090ff;border:1px solid rgba(76,76,204,.17);}
+.p-both{background:rgba(31,177,90,.06);color:var(--green);border:1px solid rgba(31,177,90,.14);}
+.p-new{background:rgba(245,184,0,.08);color:var(--gold);border:1px solid rgba(245,184,0,.17);animation:glw 2s infinite;}
+@keyframes glw{0%,100%{box-shadow:none;}50%{box-shadow:0 0 5px rgba(245,184,0,.22);}}
+.p-ui{background:rgba(76,76,204,.09);color:#9090ff;border:1px solid rgba(76,76,204,.17);}
+.p-ux{background:rgba(255,140,66,.07);color:var(--orange);border:1px solid rgba(255,140,66,.15);}
+.p-feature,.p-both2{background:rgba(31,177,90,.06);color:var(--green);border:1px solid rgba(31,177,90,.13);}
+.mc-src{font-size:.59rem;color:var(--muted);display:flex;align-items:center;gap:3px;font-weight:500;}
+.src-d{width:3px;height:3px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.mc-time{font-size:.59rem;color:var(--muted);flex-shrink:0;}
+.mc-body{padding:8px 10px;}
+.mc-name{font-weight:700;font-size:.8rem;margin-bottom:4px;line-height:1.3;}
+.mc-desc{font-size:.7rem;color:var(--text2);line-height:1.55;margin-bottom:6px;}
+.mc-info{background:rgba(76,76,204,.05);border:1px solid var(--border);border-radius:7px;padding:6px 9px;margin-bottom:6px;}
+.mip-row{display:flex;gap:12px;flex-wrap:wrap;}
+.mip-item{display:flex;flex-direction:column;gap:2px;min-width:72px;}
+.mip-lbl{font-size:.53rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.mip-val{font-size:.67rem;font-weight:600;color:var(--text);}
+.mc-adopt{padding:6px 8px;border-radius:6px;font-size:.68rem;background:linear-gradient(135deg,rgba(31,177,90,.06),rgba(15,15,131,.03));border:1px solid rgba(31,177,90,.13);color:var(--text2);line-height:1.5;}
+.mc-adopt strong{color:var(--green);}
+.mc-foot{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg3);flex-wrap:wrap;gap:4px;}
+.imp-row{display:flex;align-items:center;gap:4px;}
+.imp-stars{color:var(--gold);font-size:.66rem;}
+.imp-lbl{font-size:.58rem;color:var(--muted);font-weight:600;}
+.mc-btns{display:flex;gap:4px;}
+.mc-btn{font-size:.62rem;padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .11s;font-family:'Figtree',sans-serif;font-weight:500;}
+.mc-btn:hover{border-color:var(--bord2);color:var(--text);}
+.mc-btn.saved{border-color:rgba(245,184,0,.28);color:var(--gold);background:rgba(245,184,0,.04);}
+.mc-btn.del:hover{border-color:rgba(255,69,96,.28);color:var(--red);}
+.empty{text-align:center;padding:36px 12px;color:var(--muted);display:none;}
+.empty.show{display:block;}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:14px;}
+.overlay.open{display:flex;}
+.modal{background:var(--card2);border:1px solid var(--bord2);border-radius:14px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;padding:20px;animation:mIn .22s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.modal-t{font-weight:800;font-size:.9rem;}
+.modal-x{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;display:flex;align-items:center;justify-content:center;transition:all .11s;}
+.modal-x:hover{border-color:rgba(255,69,96,.28);color:var(--red);}
+.fg{margin-bottom:10px;}
+.fl{font-size:.62rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:block;}
+.fi,.fs,.ft{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Figtree',sans-serif;font-size:.8rem;outline:none;transition:border-color .14s;}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--violet);}
+.fi::placeholder,.ft::placeholder{color:var(--muted);}
+.fs option{background:var(--bg2);}
+.ft{resize:vertical;min-height:54px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.modal-sub{width:100%;padding:9px;border-radius:9px;margin-top:5px;cursor:pointer;background:linear-gradient(135deg,var(--violet),var(--navy));border:none;color:#fff;font-family:'Figtree',sans-serif;font-weight:700;font-size:.8rem;transition:opacity .13s;}
+.modal-sub:hover{opacity:.87;}
+
+/* ── TOASTS ── */
+.toasts{position:fixed;top:58px;right:12px;z-index:700;display:flex;flex-direction:column;gap:6px;}
+.toast{background:var(--card2);border:1px solid var(--bord2);border-radius:10px;padding:9px 12px;width:260px;display:flex;align-items:flex-start;gap:8px;animation:tIn .26s ease;box-shadow:0 5px 20px rgba(0,0,0,.4);position:relative;overflow:hidden;}
+@keyframes tIn{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:translateX(0);}}
+.toast.fade-out{animation:tOut .22s ease forwards;}
+@keyframes tOut{to{opacity:0;transform:translateX(10px);}}
+.t-ico{font-size:.88rem;flex-shrink:0;margin-top:1px;}
+.t-title{font-weight:700;font-size:.72rem;margin-bottom:1px;}
+.t-body{font-size:.65rem;color:var(--text2);line-height:1.4;}
+.t-x{margin-left:auto;color:var(--muted);cursor:pointer;font-size:.6rem;flex-shrink:0;}
+.tbar{position:absolute;bottom:0;left:0;height:2px;animation:tshr 4s linear forwards;}
+@keyframes tshr{to{width:0;}}
+.spin{animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:600;display:none;align-items:center;justify-content:center;padding:14px;cursor:pointer;}
+.lb.open{display:flex;}
+.lb img{max-width:90vw;max-height:85vh;border-radius:9px;border:1px solid var(--border);object-fit:contain;}
+</style>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<div class="topnav">
+  <div class="tn-brand">
+    <div class="tn-gem">🔬</div>
+    <span class="tn-name">UI Pattern AI</span>
+  </div>
+  <div class="tn-tabs">
+    <div class="tn-tab">Research</div>
+    <div class="tn-tab act"><span class="live-dot"></span>CommandCenter</div>
+    <div class="tn-tab">Analytics</div>
+  </div>
+  <div class="tn-right">
+    <div class="api-wrap">
+      <span style="font-size:.82rem">🔑</span>
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="Paste sk-ant-... API key here" onkeydown="if(event.key==='Enter')saveKey()">
+      <button class="api-btn" onclick="saveKey()">Connect</button>
+    </div>
+    <div class="api-badge off" id="apiStatus">NOT CONNECTED</div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div class="lb" id="lb" onclick="closeLB()"><img id="lbImg" src="" alt=""></div>
+
+<!-- ADD MONITOR MODAL -->
+<div class="overlay" id="overlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-t">＋ Add Feature Update</div><button class="modal-x" onclick="closeModal()">✕</button></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Broker</label>
+        <select class="fs" id="mBroker">
+          <option value="zerodha">Zerodha</option><option value="groww">Groww</option>
+          <option value="upstox">Upstox</option><option value="dhan">Dhan</option>
+          <option value="angel">Angel One</option><option value="indmoney">INDmoney</option>
+          <option value="paytm">Paytm Money</option><option value="fyers">Fyers</option><option value="other">Other</option>
+        </select></div>
+      <div class="fg"><label class="fl">Platform</label>
+        <select class="fs" id="mPlatform"><option value="apk">APK</option><option value="web">Web</option><option value="both">Both</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Feature Name</label><input class="fi" id="mName" placeholder="e.g. AI Search Copilot redesign"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fs" id="mType"><option value="ui">UI</option><option value="ux">UX</option><option value="both">UI+UX</option><option value="feature">Feature</option></select></div>
+      <div class="fg"><label class="fl">Impact</label>
+        <select class="fs" id="mImpact">
+          <option value="5">⭐⭐⭐⭐⭐ Game-changer</option><option value="4">⭐⭐⭐⭐ High</option>
+          <option value="3" selected>⭐⭐⭐ Medium</option><option value="2">⭐⭐ Low</option><option value="1">⭐ Minor</option>
+        </select></div>
+    </div>
+    <div class="fg"><label class="fl">Description</label><textarea class="ft" id="mDesc" placeholder="What changed? How does it affect UX?"></textarea></div>
+    <div class="fg"><label class="fl">PL India Idea</label><textarea class="ft" id="mAdopt" placeholder="How can PL India adopt this?" style="min-height:44px"></textarea></div>
+    <div class="fg"><label class="fl">Source Name</label><input class="fi" id="mSource" placeholder="App Store, Inc42, Twitter..."></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Source Type</label>
+        <select class="fs" id="mSourceType">
+          <option value="Official Blog">📝 Official Blog</option><option value="App Store">🍎 App Store</option>
+          <option value="Play Store">▶️ Play Store</option><option value="Twitter/X">𝕏 Twitter/X</option>
+          <option value="Entrackr">📰 Entrackr</option><option value="Inc42">📰 Inc42</option>
+          <option value="Reddit">🔴 Reddit</option><option value="Other">🔗 Other</option>
+        </select></div>
+      <div class="fg"><label class="fl">Source URL</label><input class="fi" id="mSourceUrl" placeholder="https://..."></div>
+    </div>
+    <button class="modal-sub" onclick="submitManual()">Add to Monitor Feed</button>
+  </div>
+</div>
+
+<!-- ROADMAP ADD MODAL -->
+<div class="overlay" id="rmOverlay" onclick="closeRmModalOut(event)">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-t">＋ Add Roadmap Item</div><button class="modal-x" onclick="closeRmModal()">✕</button></div>
+    <div class="fg"><label class="fl">Feature Name</label><input class="fi" id="rmName" placeholder="e.g. Live price in search dropdown"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Priority</label>
+        <select class="fs" id="rmPriority"><option value="high">🔴 High</option><option value="med" selected>🟡 Medium</option><option value="low">⚪ Low</option></select></div>
+      <div class="fg"><label class="fl">Inspired By</label>
+        <select class="fs" id="rmBroker">
+          <option value="Dhan">Dhan</option><option value="Angel One">Angel One</option><option value="Zerodha">Zerodha</option>
+          <option value="Upstox">Upstox</option><option value="Groww">Groww</option><option value="Other">Other</option>
+        </select></div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="ft" id="rmNotes" placeholder="Any details or reference..."></textarea></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select class="fs" id="rmStatus"><option value="todo">📋 To Do</option><option value="doing">⚡ In Progress</option><option value="done">✅ Done</option></select></div>
+    <button class="modal-sub" onclick="submitRoadmap()">Add to Roadmap</button>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-head"><div class="sb-lbl">Command Center</div></div>
+    <div class="sb-nav">
+      <div class="nav-item" onclick="sq('search bar')"><span class="nav-ico">🔍</span>Search</div>
+      <div class="nav-item active" id="navOrderFlow" onclick="sq('order flow')"><span class="nav-ico">↔️</span>Order Flow</div>
+      <div class="nav-item" onclick="sq('portfolio screen')"><span class="nav-ico">◑</span>Portfolio</div>
+      <div class="nav-item" onclick="sq('watchlist design')"><span class="nav-ico">👁</span>Watchlist</div>
+      <div class="nav-item" onclick="sq('settings UI')"><span class="nav-ico">⚙️</span>Settings</div>
+      <div class="sb-sec">More Patterns</div>
+      <div class="nav-item" onclick="sq('home screen layout')"><span class="nav-ico">🏠</span>Home Screen</div>
+      <div class="nav-item" onclick="sq('stock chart UI')"><span class="nav-ico">📈</span>Chart UI</div>
+      <div class="nav-item" onclick="sq('onboarding flow')"><span class="nav-ico">🚪</span>Onboarding</div>
+      <div class="nav-item" onclick="sq('mutual funds UI')"><span class="nav-ico">💰</span>Mutual Funds</div>
+      <div class="nav-item" onclick="sq('price alerts UI')"><span class="nav-ico">🔔</span>Alerts</div>
+      <div class="nav-item" onclick="sq('bottom navigation')"><span class="nav-ico">🧭</span>Navigation</div>
+      <div class="nav-item" onclick="sq('dark mode design')"><span class="nav-ico">🌙</span>Dark Mode</div>
+    </div>
+    <div class="sb-bottom">
+      <button class="new-btn" onclick="clearChat()">＋ New Analysis</button>
+      <div class="sb-link" onclick="exportPDF()">📄 Export Report</div>
+      <div class="sb-link">↩ Sign Out</div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center-pane">
+    <div class="pane-tabs">
+      <div class="ptab active" onclick="switchTab('chat',this)">💬 AI Chat</div>
+      <div class="ptab" onclick="switchTab('compare',this)">⚡ Compare</div>
+      <div class="ptab" onclick="switchTab('roadmap',this)">🗺 Roadmap</div>
+    </div>
+
+    <!-- CHAT TAB -->
+    <div class="tab-content active" id="tabChat">
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="welcome" id="welcomeScreen">
+          <div class="w-bot">🤖<div class="w-bot-dot"></div></div>
+          <div class="w-title">UI Pattern AI Research Hub</div>
+          <div class="w-sub">Analyze, benchmark, and monitor UI patterns across Indian fintech brokers. How can I assist your research today?</div>
+          <div class="w-grid">
+            <div class="w-card" onclick="sq('order flow UI')"><div class="w-card-ico">📊</div><div class="w-card-t">Analyze Flow</div><div class="w-card-s">Compare order execution paths</div></div>
+            <div class="w-card" onclick="sq('search bar')"><div class="w-card-ico">🔍</div><div class="w-card-t">Search UI</div><div class="w-card-s">Rank search UX across 8 brokers</div></div>
+            <div class="w-card" onclick="sq('home screen layout')"><div class="w-card-ico">🏠</div><div class="w-card-t">Home Screen</div><div class="w-card-s">Review layout and UX patterns</div></div>
+            <div class="w-card" onclick="sq('bottom navigation')"><div class="w-card-ico">🧭</div><div class="w-card-t">Navigation</div><div class="w-card-s">Bottom nav design patterns</div></div>
+          </div>
+          <div class="w-chips">
+            <div class="wchip" onclick="sq('search bar')">search bar</div>
+            <div class="wchip" onclick="sq('order placement')">order flow</div>
+            <div class="wchip" onclick="sq('watchlist')">watchlist</div>
+            <div class="wchip" onclick="sq('portfolio screen')">portfolio</div>
+            <div class="wchip" onclick="sq('stock chart')">chart UI</div>
+            <div class="wchip" onclick="sq('onboarding')">onboarding</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <div class="cin-row">
+          <textarea class="cinput" id="chatInput" placeholder="Describe a pattern or ask about a broker..." rows="1" onkeydown="ck(event)" oninput="ar(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPARE TAB -->
+    <div class="tab-content" id="tabCompare">
+      <div class="compare-pane" id="comparePaneContent">
+        <div class="compare-select-row">
+          <select id="cmpA">
+            <option value="dhan">Dhan</option><option value="zerodha">Zerodha</option>
+            <option value="angel">Angel One</option><option value="upstox">Upstox</option>
+            <option value="groww">Groww</option><option value="indmoney">INDmoney</option>
+            <option value="paytm">Paytm</option><option value="fyers">Fyers</option>
+          </select>
+          <div style="display:flex;align-items:center;font-size:.9rem;font-weight:800;color:var(--muted)">VS</div>
+          <select id="cmpB">
+            <option value="zerodha">Zerodha</option><option value="dhan">Dhan</option>
+            <option value="angel">Angel One</option><option value="upstox">Upstox</option>
+            <option value="groww">Groww</option><option value="indmoney">INDmoney</option>
+            <option value="paytm">Paytm</option><option value="fyers">Fyers</option>
+          </select>
+          <select id="cmpPattern" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Figtree',sans-serif;font-size:.8rem;outline:none;">
+            <option value="search bar">Search Bar</option>
+            <option value="home screen layout">Home Screen</option>
+            <option value="order placement flow">Order Flow</option>
+            <option value="watchlist design">Watchlist</option>
+            <option value="stock chart UI">Chart UI</option>
+            <option value="bottom navigation">Navigation</option>
+            <option value="portfolio screen">Portfolio</option>
+            <option value="onboarding flow">Onboarding</option>
+          </select>
+          <button class="compare-run-btn" id="cmpRunBtn" onclick="runCompare()">⚡ Compare</button>
+        </div>
+        <div id="compareResult" class="compare-result"></div>
+      </div>
+    </div>
+
+    <!-- ROADMAP TAB -->
+    <div class="tab-content" id="tabRoadmap">
+      <div class="roadmap-pane">
+        <div class="rm-header">
+          <div class="rm-title">🗺 PL India Feature Roadmap</div>
+          <div style="display:flex;gap:8px;">
+            <button class="export-btn" onclick="exportPDF()" style="margin-bottom:0">📄 Export PDF</button>
+            <button class="rm-add-btn" onclick="openRmModal()">＋ Add Feature</button>
+          </div>
+        </div>
+        <div class="rm-progress">
+          <div class="rm-progress-title">Overall Progress</div>
+          <div class="rm-prog-bar"><div class="rm-prog-fill" id="rmProgFill" style="width:0%"></div></div>
+          <div class="rm-prog-text" id="rmProgText">0 of 0 features completed</div>
+        </div>
+        <div class="rm-cols" style="margin-top:14px;">
+          <div class="rm-col">
+            <div class="rm-col-hd todo"><span>📋 To Do</span><span class="rm-col-count" id="todoCnt">0</span></div>
+            <div class="rm-items" id="colTodo" ondragover="allowDrop(event)" ondrop="dropItem(event,'todo')"></div>
+          </div>
+          <div class="rm-col">
+            <div class="rm-col-hd doing"><span>⚡ In Progress</span><span class="rm-col-count" id="doingCnt">0</span></div>
+            <div class="rm-items" id="colDoing" ondragover="allowDrop(event)" ondrop="dropItem(event,'doing')"></div>
+          </div>
+          <div class="rm-col">
+            <div class="rm-col-hd done"><span>✅ Done</span><span class="rm-col-count" id="doneCnt">0</span></div>
+            <div class="rm-items" id="colDone" ondragover="allowDrop(event)" ondrop="dropItem(event,'done')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONITOR RIGHT -->
+  <div class="monitor-pane">
+    <div class="mon-hd">
+      <div class="mon-title-row">
+        <div class="mon-title">Feature Monitor <div class="live-badge"><div class="live-dot"></div>LIVE</div></div>
+        <div class="mon-acts">
+          <button class="mact pri" id="scanBtn" onclick="runScan()">⚡ AI Scan</button>
+          <button class="mact" onclick="openModal()">＋ Add</button>
+        </div>
+      </div>
+      <div class="mon-stats">
+        <div class="mstat"><span class="mstat-v" id="stTotal">0</span> updates</div>
+        <div class="mstat"><span class="mstat-v" id="stNew" style="color:var(--green)">0</span> new</div>
+        <div class="mstat"><span class="mstat-v" id="stBkm" style="color:var(--gold)">0</span> saved</div>
+      </div>
+    </div>
+    <div class="mon-filters">
+      <button class="mf-chip active" onclick="mFilter('all',this)">All</button>
+      <button class="mf-chip" onclick="mFilter('zerodha',this)">Zerodha</button>
+      <button class="mf-chip" onclick="mFilter('groww',this)">Groww</button>
+      <button class="mf-chip" onclick="mFilter('dhan',this)">Dhan</button>
+      <button class="mf-chip" onclick="mFilter('angel',this)">Angel</button>
+      <button class="mf-chip" onclick="mFilter('upstox',this)">Upstox</button>
+      <button class="mf-chip" onclick="mFilter('indmoney',this)">INDmoney</button>
+      <button class="mf-chip" onclick="mFilter('paytm',this)">Paytm</button>
+      <button class="mf-chip" onclick="mFilter('fyers',this)">Fyers</button>
+      <button class="mf-chip" onclick="mFilter('bookmarked',this)">⭐ Saved</button>
+    </div>
+    <div class="mon-feed" id="monitorFeed"></div>
+    <div class="empty" id="emptyState"><div style="font-size:2rem;opacity:.25;margin-bottom:8px">📭</div><div style="font-size:.76rem;font-weight:500">No updates. Run AI Scan or add manually.</div></div>
+  </div>
+</div>
+
+<script>
+// ══════════ CONFIG ══════════
+// When hosted on Vercel, API calls go through /api/claude proxy
+// When running locally, set API_KEY directly as fallback
+const IS_HOSTED = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.protocol !== 'file:';
+const API_PROXY  = '/api/claude';
+
+const B={
+  zerodha:{name:'Zerodha',  col:'#4a9eff',bg:'rgba(74,158,255,.12)', lbg:'#1565c0',logo:'Z'},
+  groww:  {name:'Groww',    col:'#00c896',bg:'rgba(0,200,150,.12)',  lbg:'#00796b',logo:'G'},
+  upstox: {name:'Upstox',   col:'#b06cff',bg:'rgba(176,108,255,.12)',lbg:'#7b1fa2',logo:'U'},
+  dhan:   {name:'Dhan',     col:'#00e5ff',bg:'rgba(0,229,255,.1)',   lbg:'#006064',logo:'D'},
+  angel:  {name:'Angel One',col:'#ffcc00',bg:'rgba(255,204,0,.1)',   lbg:'#e65100',logo:'A'},
+  indmoney:{name:'INDmoney',col:'#ff7043',bg:'rgba(255,112,67,.12)', lbg:'#bf360c',logo:'I'},
+  paytm:  {name:'Paytm',    col:'#00b4d8',bg:'rgba(0,180,216,.1)',   lbg:'#01579b',logo:'P'},
+  fyers:  {name:'Fyers',    col:'#ff5252',bg:'rgba(255,82,82,.12)',  lbg:'#b71c1c',logo:'F'},
+  other:  {name:'Other',    col:'#aaa',   bg:'rgba(170,170,170,.1)', lbg:'#555',   logo:'?'},
+};
+
+// ══════════ API ══════════
+let API_KEY='';
+function saveKey(){
+  const v=document.getElementById('apiKeyInput').value.trim();if(!v)return;
+  API_KEY=v;const s=document.getElementById('apiStatus');
+  if(v.startsWith('sk-ant-')||v.startsWith('sk-')){
+    s.textContent='CONNECTED ✓';s.className='api-badge on';
+    toast('🔑 Connected','Claude AI active — type any UI pattern!','green');
+  }else{s.textContent='CHECK KEY';s.className='api-badge off';toast('⚠️ Key Format','Key should start with sk-ant-...','orange');}
+}
+
+async function callAI(messages, maxTokens=800){
+  // Always route through proxy to avoid CORS
+  // Proxy reads ANTHROPIC_API_KEY from env, or falls back to local direct call
+  try{
+    const res=await fetch(IS_HOSTED ? API_PROXY : 'https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers: IS_HOSTED
+        ? {'Content-Type':'application/json'}
+        : {'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify(IS_HOSTED
+        ? {messages, max_tokens:maxTokens}
+        : {model:'claude-sonnet-4-20250514',max_tokens:maxTokens,messages})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e?.error||'API error '+res.status);}
+    const d=await res.json();
+    // Hosted proxy returns {text}, direct returns full Anthropic response
+    if(IS_HOSTED) return d.text||'';
+    return d.content?.map(c=>c.text||'').join('')||'';
+  }catch(err){
+    // If hosted proxy fails (e.g. no env key), try direct with user's key
+    if(IS_HOSTED && API_KEY){
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,messages})
+      });
+      if(!res.ok){const e=await res.json();throw new Error(e?.error?.message||'API error '+res.status);}
+      const d=await res.json();return d.content?.map(c=>c.text||'').join('')||'';
+    }
+    if(!IS_HOSTED && !API_KEY) throw new Error('Enter API key in top bar first.');
+    throw err;
+  }
+}
+
+// ══════════ TAB SWITCHING ══════════
+function switchTab(name,el){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
+}
+
+// ══════════ CHAT ══════════
+let chatLoading=false;
+function ck(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,96)+'px';}
+function sq(t){
+  const w=document.getElementById('welcomeScreen');if(w)w.style.display='none';
+  document.getElementById('chatInput').value=t;
+  // Switch to chat tab
+  document.querySelectorAll('.ptab').forEach((tb,i)=>{if(i===0)tb.classList.add('active');else tb.classList.remove('active');});
+  document.querySelectorAll('.tab-content').forEach((tc,i)=>{if(i===0)tc.classList.add('active');else tc.classList.remove('active');});
+  sendMsg();
+}
+function clearChat(){
+  const m=document.getElementById('chatMsgs');m.innerHTML='';
+  const w=document.createElement('div');w.id='welcomeScreen';w.className='welcome';
+  w.innerHTML=`<div class="w-bot">🤖<div class="w-bot-dot"></div></div>
+    <div class="w-title">UI Pattern AI Research Hub</div>
+    <div class="w-sub">Analyze, benchmark, and monitor UI patterns across Indian fintech brokers.</div>
+    <div class="w-chips">
+      <div class="wchip" onclick="sq('search bar')">search bar</div>
+      <div class="wchip" onclick="sq('order placement')">order flow</div>
+      <div class="wchip" onclick="sq('watchlist')">watchlist</div>
+      <div class="wchip" onclick="sq('portfolio screen')">portfolio</div>
+    </div>`;
+  m.appendChild(w);
+}
+function scrollC(){const m=document.getElementById('chatMsgs');setTimeout(()=>m.scrollTop=m.scrollHeight,60);}
+function sendMsg(){
+  if(chatLoading)return;
+  const inp=document.getElementById('chatInput');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';inp.style.height='auto';
+  const w=document.getElementById('welcomeScreen');if(w)w.style.display='none';
+  addUM(text);const lid=addLoad();
+  chatLoading=true;document.getElementById('sendBtn').disabled=true;
+  doChat(text).then(r=>{
+    rmEl(lid);addAIM(text,r);
+    chatLoading=false;document.getElementById('sendBtn').disabled=false;
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  }).catch(err=>{
+    rmEl(lid);addErrM(err.message);
+    chatLoading=false;document.getElementById('sendBtn').disabled=false;
+  });
+}
+function addUM(t){
+  const m=document.getElementById('chatMsgs'),d=document.createElement('div');d.className='msg-row user';
+  d.innerHTML=`<div class="av usr">P</div><div class="bubble">${esc(t)}</div>`;m.appendChild(d);scrollC();
+}
+function addLoad(){
+  const m=document.getElementById('chatMsgs'),id='ld_'+Date.now();
+  const d=document.createElement('div');d.className='msg-row';d.id=id;
+  d.innerHTML=`<div class="av ai">🔬</div><div class="bubble"><div style="font-size:.65rem;color:var(--muted);margin-bottom:4px">Analyzing across 8 brokers…</div><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  m.appendChild(d);scrollC();return id;
+}
+function rmEl(id){document.getElementById(id)?.remove();}
+function addErrM(msg){
+  const m=document.getElementById('chatMsgs'),d=document.createElement('div');d.className='msg-row';
+  d.innerHTML=`<div class="av ai">🔬</div><div class="bubble" style="color:var(--red);font-size:.78rem">⚠ ${esc(msg)}<br><span style="color:var(--muted);font-size:.68rem">Check API key & credits at console.anthropic.com</span></div>`;
+  m.appendChild(d);scrollC();
+}
+function addAIM(q,data){
+  const m=document.getElementById('chatMsgs'),d=document.createElement('div');d.className='msg-row';
+  d.innerHTML=`<div class="av ai">🔬</div><div style="flex:1;min-width:0;">
+    <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px">Analyzed: <strong style="color:var(--text)">${esc(data.pattern||q)}</strong> — ${esc(data.intro||'')}</div>
+    <div class="chat-result">${buildCR(data)}</div></div>`;
+  m.appendChild(d);scrollC();
+}
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ══════════ DOCHAT ══════════
+async function doChat(query){
+  const KEYS=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
+  const prompt=`You are a senior UI/UX analyst for Indian stock trading apps.
+Analyze the UI pattern "${query}" across 8 brokers.
+Respond with EXACTLY 10 lines. Nothing else. No intro. No explanation.
+Line 1-8: one broker each:
+key|rank|visual|ease|speed|clarity|unique|overall|live_price|filters|fuzzy|trending|standout|verdict|weakness
+- key: zerodha groww upstox dhan angel indmoney paytm fyers
+- rank: 1-8 integer
+- scores: decimals like 8.5
+- live_price filters fuzzy trending: YES or NO
+- standout/verdict/weakness: short phrases no pipes
+Line 9: winner key
+Line 10: PL India tip 15 words max`;
+  const raw=await callAI([{role:'user',content:prompt}],800);
+  return parsePipe(raw,query,KEYS);
+}
+
+function parsePipe(raw,query,KEYS){
+  const lines=raw.trim().split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+  const brokers=[];let winner='dhan',plindia='Prioritize speed and live price data in all results.';
+  for(const line of lines){
+    if(line.startsWith('//')||line.startsWith('#')||line.startsWith('key|')||line.startsWith('---'))continue;
+    const p=line.split('|'),key=p[0]?.toLowerCase().trim();
+    if(p.length>=12&&KEYS.includes(key)){
+      brokers.push({key,rank:parseInt(p[1])||brokers.length+1,
+        scores:{visual:parseFloat(p[2])||7.5,ease:parseFloat(p[3])||7.5,speed:parseFloat(p[4])||7.5,clarity:parseFloat(p[5])||7.5,unique:parseFloat(p[6])||7.5},
+        overall:parseFloat(p[7])||7.5,
+        features:{live_price:p[8]?.toUpperCase()==='YES',filters:p[9]?.toUpperCase()==='YES',fuzzy:p[10]?.toUpperCase()==='YES',trending:p[11]?.toUpperCase()==='YES'},
+        standout:p[12]?.trim()||'Solid implementation',verdict:p[13]?.trim()||'Good pattern',weakness:p[14]?.trim()||'Could improve',
+      });
+    }else if(p.length===1&&KEYS.includes(key)){winner=key;}
+    else if(p.length===1&&line.length>8&&!KEYS.includes(key)&&brokers.length>=4){plindia=line;}
+  }
+  if(brokers.length<5) return buildFallback(query);
+  KEYS.forEach(k=>{if(!brokers.find(b=>b.key===k))brokers.push({key:k,rank:brokers.length+1,scores:{visual:7,ease:7,speed:7,clarity:7,unique:7},overall:7,features:{live_price:false,filters:false,fuzzy:false,trending:false},standout:'Standard',verdict:'Average pattern',weakness:'Limited'});});
+  brokers.sort((a,b)=>a.rank-b.rank);
+  return{pattern:query.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '),intro:`Comparing ${query} across 8 major Indian trading apps.`,brokers,winner,plindia};
+}
+
+function buildFallback(query){
+  return{pattern:query.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '),intro:`Comparing ${query} across 8 major Indian trading apps.`,
+    brokers:[
+      {key:'dhan',    rank:1,overall:9.1,scores:{visual:9.2,ease:9.0,speed:9.5,clarity:9.0,unique:9.0},features:{live_price:true, filters:true, fuzzy:true, trending:true}, standout:'Best overall implementation',  verdict:'Industry leader for this UI pattern',   weakness:'Complex for new users'},
+      {key:'angel',   rank:2,overall:8.6,scores:{visual:8.5,ease:8.8,speed:8.7,clarity:8.5,unique:8.3},features:{live_price:true, filters:true, fuzzy:true, trending:true}, standout:'Excellent filter and flow',    verdict:'Very strong on APK and web',           weakness:'Web heavier than APK'},
+      {key:'zerodha', rank:3,overall:8.2,scores:{visual:7.8,ease:8.8,speed:9.0,clarity:8.2,unique:7.0},features:{live_price:true, filters:false,fuzzy:true, trending:false},standout:'Fastest response time',         verdict:'Fast and reliable but visually dated', weakness:'No filter tabs'},
+      {key:'upstox',  rank:4,overall:8.0,scores:{visual:9.0,ease:7.8,speed:7.9,clarity:8.0,unique:8.2},features:{live_price:false,filters:true, fuzzy:true, trending:true}, standout:'Most modern visual design',    verdict:'Beautiful but missing live prices',    weakness:'No live price'},
+      {key:'groww',   rank:5,overall:7.8,scores:{visual:8.2,ease:8.0,speed:7.8,clarity:7.8,unique:6.5},features:{live_price:false,filters:false,fuzzy:false,trending:true},  standout:'Best beginner UX',             verdict:'Clean but lacks trader depth',         weakness:'No filters'},
+      {key:'indmoney',rank:6,overall:7.1,scores:{visual:7.5,ease:7.0,speed:7.0,clarity:7.2,unique:6.8},features:{live_price:false,filters:false,fuzzy:false,trending:true},  standout:'India and US unified view',    verdict:'Good wealth app weak for trading',     weakness:'Slow search'},
+      {key:'paytm',   rank:7,overall:6.4,scores:{visual:6.5,ease:6.8,speed:6.5,clarity:6.5,unique:5.5},features:{live_price:false,filters:false,fuzzy:false,trending:false}, standout:'Familiar brand recognition',   verdict:'Dated UI and afterthought design',     weakness:'Slowest response'},
+      {key:'fyers',   rank:8,overall:6.9,scores:{visual:6.2,ease:7.0,speed:7.5,clarity:6.8,unique:7.0},features:{live_price:false,filters:true, fuzzy:false,trending:false}, standout:'Strong F and O tools',         verdict:'Power traders not beginners',          weakness:'Not beginner friendly'},
+    ],winner:'dhan',plindia:'Study Dhan and Angel One. Prioritize speed and live data in all results.'};
+}
+
+function buildCR(data){
+  const sorted=[...(data.brokers||[])].sort((a,b)=>a.rank-b.rank);
+  const wB=B[data.winner]||{name:data.winner||'',col:'var(--green)'};
+  const cards=sorted.map(b=>{
+    const br=B[b.key]||B.other;
+    const rkcl=b.rank===1?'r1':b.rank===2?'r2':b.rank===3?'r3':'';
+    const rkbcl=b.rank===1?'rk1c':b.rank===2?'rk2c':b.rank===3?'rk3c':'rknc';
+    const rkl=b.rank===1?'🥇':b.rank===2?'🥈':b.rank===3?'🥉':`#${b.rank}`;
+    const col=b.overall>=8.5?'var(--green)':b.overall>=7?'var(--gold)':'var(--muted)';
+    const tags=Object.entries(b.features||{}).map(([k,v])=>`<span class="btag ${v?'bty':'btn2'}">${v?'✓':'✗'} ${k.replace(/_/g,' ')}</span>`).join('');
+    const slines=['RELIANCE','INFY','TCS'].map((s,i)=>`<div class="mm-row"><div class="mm-dot" style="background:${br.col}22;color:${br.col}">${s[0]}</div><div class="mm-sname" style="color:rgba(220,225,255,.85)">${s}</div><div><div class="mm-price" style="color:rgba(220,225,255,.9)">₹${['2890','1450','3720'][i]}</div><div class="mm-chg ${i===1?'dn':'up'}">${['+1.2%','-0.8%','+0.5%'][i]}</div></div></div>`).join('');
+    return `<div class="bcard ${rkcl}"><div class="bc-top"><div style="display:flex;align-items:center;gap:4px"><div class="bc-name" style="color:${br.col}">${br.name}</div><span class="bc-rnk ${rkbcl}">${rkl}</span></div><div class="bc-score" style="color:${col}">${b.overall}</div></div>
+    <div class="mmock" style="background:rgba(8,8,30,.7)"><div class="mm-bar"><span style="font-size:.56rem">🔍</span><span style="color:rgba(255,255,255,.2);font-size:.46rem">Search…</span></div>
+    ${b.features?.filters?`<div class="mm-pills"><div class="mm-pill" style="background:${br.col};color:#000">All</div><div class="mm-pill" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.3)">Equity</div><div class="mm-pill" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.3)">F&O</div></div>`:''}
+    ${slines}</div>
+    <div class="bc-tags">${tags}</div>
+    ${b.standout?`<div style="padding:2px 7px 4px;font-size:.57rem;color:var(--cyan);font-weight:600">⭐ ${esc(b.standout)}</div>`:''}
+    <div class="bc-verdict" style="border-left:2px solid ${br.col};padding-left:6px;margin:0 7px 7px">${esc(b.verdict||'')}${b.weakness?`<div style="color:var(--red);font-size:.57rem;margin-top:2px">⚠ ${esc(b.weakness)}</div>`:''}</div></div>`;
+  }).join('');
+  const tRows=sorted.map(b=>{
+    const br=B[b.key]||B.other;const pct=Math.min(100,(b.overall/10)*100);
+    const col=b.overall>=8.5?'var(--green)':b.overall>=7?'var(--gold)':'var(--muted)';
+    return `<tr><td><span class="rn-num" style="color:${col}">${b.rank}</span></td><td style="color:${br.col};font-weight:600;font-size:.7rem">${br.name}</td><td><span class="rn-bar"><span class="rn-fill" style="display:block;width:${pct}%;background:${col}"></span></span></td><td style="font-weight:700;color:${col};font-size:.7rem">${b.overall}</td></tr>`;
+  }).join('');
+  return `<div class="cr-hd"><div class="cr-title">📊 ${esc(data.pattern||'')} — 8 Brokers</div><div class="cr-win">🏆 Best: ${wB.name}</div></div>
+  <div class="bscroll">${cards}</div>
+  <div class="rank-mini"><table><thead><tr><th>#</th><th>Broker</th><th>Score</th><th>Rating</th></tr></thead><tbody>${tRows}</tbody></table></div>
+  ${data.plindia?`<div class="pli-box"><strong>💡 PL India:</strong> ${esc(data.plindia)}</div>`:''}`;
+}
+
+// ══════════ COMPARE ══════════
+let cmpData=null;
+async function runCompare(){
+  const a=document.getElementById('cmpA').value, b=document.getElementById('cmpB').value;
+  const pattern=document.getElementById('cmpPattern').value;
+  if(a===b){toast('⚠️ Same Broker','Please select two different brokers','orange');return;}
+  const btn=document.getElementById('cmpRunBtn');
+  btn.disabled=true;btn.textContent='⚡ Comparing…';
+  const KEYS=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
+  const prompt=`You are a UI/UX analyst for Indian trading apps.
+Compare only ${B[a]?.name} and ${B[b]?.name} for the UI pattern "${pattern}".
+Reply in pipe format, 2 lines only (one per broker), then 2 more lines:
+broker_key|visual|ease|speed|clarity|unique|overall|f1|f2|f3|f4|verdict|tip
+(f1=live price YES/NO, f2=filter tabs YES/NO, f3=fuzzy YES/NO, f4=trending YES/NO)
+Line 3: winner broker key (${a} or ${b})
+Line 4: PL India recommendation 20 words max`;
+  try{
+    const raw=await callAI([{role:'user',content:prompt}],500);
+    const lines=raw.trim().split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+    const brokerData={};let winner=a,plindia='';
+    for(const line of lines){
+      const p=line.split('|'),key=p[0]?.toLowerCase().trim();
+      if(p.length>=12&&KEYS.includes(key)){
+        brokerData[key]={key,scores:{visual:parseFloat(p[1])||7.5,ease:parseFloat(p[2])||7.5,speed:parseFloat(p[3])||7.5,clarity:parseFloat(p[4])||7.5,unique:parseFloat(p[5])||7.5},
+          overall:parseFloat(p[6])||7.5,features:{live_price:p[7]?.toUpperCase()==='YES',filters:p[8]?.toUpperCase()==='YES',fuzzy:p[9]?.toUpperCase()==='YES',trending:p[10]?.toUpperCase()==='YES'},verdict:p[11]?.trim()||'',tip:p[12]?.trim()||''};
+      }else if(KEYS.includes(key)&&p.length===1){winner=key;}
+      else if(p.length===1&&line.length>8&&!KEYS.includes(key)){plindia=line;}
+    }
+    cmpData={a:brokerData[a]||{key:a,scores:{visual:8,ease:8,speed:8,clarity:8,unique:8},overall:8,features:{live_price:true,filters:true,fuzzy:true,trending:true},verdict:'Solid implementation',tip:''},
+             b:brokerData[b]||{key:b,scores:{visual:7.5,ease:7.5,speed:7.5,clarity:7.5,unique:7.5},overall:7.5,features:{live_price:false,filters:false,fuzzy:false,trending:true},verdict:'Good effort',tip:''},
+             winner,plindia,pattern};
+    renderCompare(cmpData);
+  }catch(e){toast('⚠️ Compare Error',e.message,'red');}
+  btn.disabled=false;btn.textContent='⚡ Compare';
+}
+
+function renderCompare(d){
+  const res=document.getElementById('compareResult');
+  res.classList.add('show');
+  const renderCard=(bd)=>{
+    const br=B[bd.key]||B.other;
+    const col=bd.overall>=8.5?'var(--green)':bd.overall>=7?'var(--gold)':'var(--muted)';
+    const isW=bd.key===d.winner;
+    const scoreRows=Object.entries(bd.scores||{}).map(([k,v])=>{
+      const pct=Math.min(100,(v/10)*100);
+      const c=v>=8.5?'var(--green)':v>=7?'var(--violet)':'var(--muted)';
+      return `<div class="cmp-score-row"><div class="cmp-score-lbl">${k}</div><div class="cmp-bar-w"><div class="cmp-bar-f" style="width:${pct}%;background:${c}"></div></div><div class="cmp-score-v" style="color:${c}">${v}</div></div>`;
+    }).join('');
+    const fTags=Object.entries(bd.features||{}).map(([k,v])=>`<span class="cmp-tag ${v?'cmp-tag-y':'cmp-tag-n'}">${v?'✓':'✗'} ${k.replace(/_/g,' ')}</span>`).join('');
+    return `<div class="cmp-card" style="${isW?'border-color:rgba(31,177,90,.4)':''}">
+      <div class="cmp-card-hd"><div class="cmp-av" style="background:${br.bg};color:${br.col}">${br.logo}</div>
+        <div><div style="font-weight:800;font-size:.9rem;color:${br.col}">${br.name}</div>${isW?'<div style="font-size:.62rem;color:var(--green);font-weight:700">🏆 Winner</div>':''}</div>
+        <div class="cmp-score-big" style="color:${col}">${bd.overall}</div></div>
+      <div class="cmp-scores">${scoreRows}</div>
+      <div class="cmp-tags">${fTags}</div>
+      <div class="cmp-verdict">${esc(bd.verdict||'')}</div>
+    </div>`;
+  };
+  const patterns=['visual','ease','speed','clarity','unique'];
+  const patRows=patterns.map(p=>{
+    const va=d.a.scores?.[p]||7.5, vb=d.b.scores?.[p]||7.5;
+    const win=va>=vb?d.a.key:d.b.key;const brW=B[win]||B.other;
+    const pctA=Math.min(100,(va/10)*100),pctB=Math.min(100,(vb/10)*100);
+    return `<div class="cmp-pat-row"><div class="cmp-pat-name">${p}</div>
+      <div style="flex:1;display:flex;gap:6px;align-items:center">
+        <div style="font-size:.68rem;font-weight:700;min-width:22px;text-align:right;color:${B[d.a.key]?.col}">${va}</div>
+        <div class="cmp-pat-bar" style="flex:1"><div class="cmp-pat-fill" style="width:${pctA}%;background:${B[d.a.key]?.col}"></div></div>
+        <div class="cmp-pat-bar" style="flex:1"><div class="cmp-pat-fill" style="width:${pctB}%;background:${B[d.b.key]?.col}"></div></div>
+        <div style="font-size:.68rem;font-weight:700;min-width:22px;color:${B[d.b.key]?.col}">${vb}</div>
+      </div>
+      <div class="cmp-pat-win" style="color:${brW.col}">${brW.name}</div></div>`;
+  }).join('');
+  res.innerHTML=`
+    <button class="export-btn" onclick="exportComparePDF()">📄 Export PDF</button>
+    <div class="cmp-grid">${renderCard(d.a)}${renderCard(d.b)}</div>
+    <div class="cmp-winner-bar"><div class="cmp-winner-title">Pattern by Pattern</div><div class="cmp-pattern-rows">${patRows}</div></div>
+    ${d.plindia?`<div class="cmp-pli"><strong>💡 PL India:</strong> ${esc(d.plindia)}</div>`:''}`;
+}
+
+// ══════════ ROADMAP ══════════
+let roadmapItems=JSON.parse(localStorage.getItem('plindiaRoadmap')||'null')||[
+  {id:'r1',name:'Live price in search dropdown',priority:'high',broker:'Dhan',status:'todo',notes:'Copy Dhan pattern exactly'},
+  {id:'r2',name:'Filter tabs on search (Equity/F&O/MF)',priority:'high',broker:'Angel One',status:'todo',notes:'Pill tabs below search bar'},
+  {id:'r3',name:'Swipe-to-confirm order sheet',priority:'high',broker:'Angel One',status:'doing',notes:'Bottom sheet with swipe gesture'},
+  {id:'r4',name:'Home screen widget - live prices',priority:'med',broker:'Upstox',status:'todo',notes:'Android + iOS widget'},
+  {id:'r5',name:'AI Trade Copilot natural language',priority:'med',broker:'Dhan',status:'doing',notes:'Integrate in Trade AI modal'},
+  {id:'r6',name:'OLED dark mode optimization',priority:'low',broker:'Dhan',status:'done',notes:'Already implemented #000 bg'},
+];
+let dragId=null;
+function saveRm(){localStorage.setItem('plindiaRoadmap',JSON.stringify(roadmapItems));}
+function renderRoadmap(){
+  ['todo','doing','done'].forEach(status=>{
+    const col=document.getElementById('col'+status.charAt(0).toUpperCase()+status.slice(1));
+    const items=roadmapItems.filter(i=>i.status===status);
+    document.getElementById(status+'Cnt').textContent=items.length;
+    col.innerHTML=items.map(item=>{
+      const pCl=item.priority==='high'?'rm-pill-high':item.priority==='med'?'rm-pill-med':'rm-pill-low';
+      const pLbl=item.priority==='high'?'🔴 High':item.priority==='med'?'🟡 Med':'⚪ Low';
+      return `<div class="rm-item" id="rmi-${item.id}" draggable="true" ondragstart="dragStart(event,'${item.id}')">
+        <div class="rm-item-name">${esc(item.name)}</div>
+        <div class="rm-item-meta">
+          <span class="rm-pill ${pCl}">${pLbl}</span>
+          <span class="rm-pill rm-pill-broker">📌 ${esc(item.broker)}</span>
+          <span class="rm-item-del" onclick="delRm('${item.id}')">✕</span>
+        </div>
+        ${item.notes?`<div style="font-size:.65rem;color:var(--muted);margin-top:4px">${esc(item.notes)}</div>`:''}
+      </div>`;
+    }).join('')||`<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:12px">Drop items here</div>`;
+  });
+  const done=roadmapItems.filter(i=>i.status==='done').length;
+  const total=roadmapItems.length;
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('rmProgFill').style.width=pct+'%';
+  document.getElementById('rmProgText').textContent=`${done} of ${total} features completed (${pct}%)`;
+}
+function dragStart(e,id){dragId=id;document.getElementById('rmi-'+id).classList.add('dragging');}
+function allowDrop(e){e.preventDefault();}
+function dropItem(e,status){
+  e.preventDefault();
+  if(!dragId)return;
+  const item=roadmapItems.find(i=>i.id===dragId);
+  if(item){item.status=status;saveRm();renderRoadmap();}
+  document.querySelectorAll('.rm-item.dragging').forEach(el=>el.classList.remove('dragging'));
+  dragId=null;
+}
+function delRm(id){roadmapItems=roadmapItems.filter(i=>i.id!==id);saveRm();renderRoadmap();}
+function openRmModal(){document.getElementById('rmOverlay').classList.add('open');}
+function closeRmModal(){document.getElementById('rmOverlay').classList.remove('open');}
+function closeRmModalOut(e){if(e.target===document.getElementById('rmOverlay'))closeRmModal();}
+function submitRoadmap(){
+  const name=document.getElementById('rmName').value.trim();if(!name){alert('Enter feature name');return;}
+  roadmapItems.push({id:'r'+Date.now(),name,priority:document.getElementById('rmPriority').value,broker:document.getElementById('rmBroker').value,status:document.getElementById('rmStatus').value,notes:document.getElementById('rmNotes').value.trim()});
+  saveRm();renderRoadmap();closeRmModal();toast('✅ Added to Roadmap',name,'green');
+  ['rmName','rmNotes'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ══════════ EXPORT PDF ══════════
+function exportPDF(){
+  try{
+    const{jsPDF}=window.jspdf;const doc=new jsPDF();
+    doc.setFontSize(18);doc.setTextColor(15,15,131);doc.text('PL India — UI Research Report',20,20);
+    doc.setFontSize(10);doc.setTextColor(100,100,150);doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`,20,28);
+    let y=40;
+    doc.setFontSize(13);doc.setTextColor(31,177,90);doc.text('Feature Roadmap',20,y);y+=8;
+    ['todo','doing','done'].forEach(status=>{
+      const label=status==='todo'?'To Do':status==='doing'?'In Progress':'Done';
+      const items=roadmapItems.filter(i=>i.status===status);
+      if(!items.length)return;
+      doc.setFontSize(10);doc.setTextColor(80,92,136);doc.text(label,20,y);y+=5;
+      items.forEach(item=>{
+        doc.setFontSize(9);doc.setTextColor(40,40,80);
+        if(y>270){doc.addPage();y=20;}
+        doc.text(`• ${item.name} [${item.priority.toUpperCase()}] — inspired by ${item.broker}`,24,y);y+=5;
+        if(item.notes){doc.setTextColor(120,120,160);doc.text(`  ${item.notes}`,24,y);y+=4;}
+      });y+=3;
+    });
+    doc.setFontSize(13);doc.setTextColor(31,177,90);doc.text('Monitor Feed',20,y);y+=8;
+    feedItems.slice(0,10).forEach(item=>{
+      const br=B[item.broker]?.name||item.broker;
+      doc.setFontSize(9);doc.setTextColor(40,40,80);
+      if(y>270){doc.addPage();y=20;}
+      doc.text(`• [${br}] ${item.name}`,20,y);y+=5;
+      const desc=item.desc.slice(0,90)+(item.desc.length>90?'...':'');
+      doc.setTextColor(100,100,140);doc.text(`  ${desc}`,20,y);y+=5;
+    });
+    doc.save('PL-India-UI-Research-Report.pdf');
+    toast('📄 PDF Exported','Report downloaded successfully','green');
+  }catch(e){toast('⚠️ PDF Error',e.message,'red');}
+}
+function exportComparePDF(){
+  if(!cmpData){toast('⚠️','Run a comparison first','orange');return;}
+  try{
+    const{jsPDF}=window.jspdf;const doc=new jsPDF();
+    const bA=B[cmpData.a.key],bB=B[cmpData.b.key];
+    doc.setFontSize(16);doc.setTextColor(15,15,131);doc.text(`${bA?.name} vs ${bB?.name}`,20,20);
+    doc.setFontSize(10);doc.setTextColor(100,100,150);doc.text(`Pattern: ${cmpData.pattern} | Generated: ${new Date().toLocaleDateString('en-IN')}`,20,28);
+    let y=40;
+    [[cmpData.a,bA],[cmpData.b,bB]].forEach(([bd,br])=>{
+      doc.setFontSize(12);doc.setTextColor(76,76,204);doc.text(`${br?.name||bd.key} — Overall: ${bd.overall}/10`,20,y);y+=7;
+      Object.entries(bd.scores||{}).forEach(([k,v])=>{doc.setFontSize(9);doc.setTextColor(80,80,120);doc.text(`  ${k}: ${v}`,20,y);y+=4;});
+      doc.setFontSize(9);doc.setTextColor(60,60,100);doc.text(`  ${bd.verdict||''}`,20,y);y+=8;
+    });
+    doc.setFontSize(10);doc.setTextColor(31,177,90);doc.text(`Winner: ${B[cmpData.winner]?.name||cmpData.winner}`,20,y);y+=6;
+    if(cmpData.plindia){doc.setFontSize(9);doc.setTextColor(60,60,100);doc.text(`PL India: ${cmpData.plindia}`,20,y);}
+    doc.save(`Compare-${bA?.name}-vs-${bB?.name}.pdf`);
+    toast('📄 PDF Exported','Comparison report downloaded','green');
+  }catch(e){toast('⚠️ PDF Error',e.message,'red');}
+}
+
+// ══════════ MONITOR ══════════
+let feedItems=[],mFilterActive='all';
+const seedItems=[
+  {id:'s1',broker:'dhan',platform:'both',name:'AI Copilot — Natural Language Search',type:'feature',impact:5,desc:'Dhan added AI copilot in search. Type "midcap IT stocks with RSI below 30" and get filtered results instantly.',adopt:'Add to PL India Trade AI modal. Natural language prompt bar on home screen.',source:'Dhan Official Blog',sourceUrl:'https://dhan.co/blog/',sourceType:'Official Blog',isNew:true,bookmarked:false,time:'2h ago',isAI:true},
+  {id:'s2',broker:'zerodha',platform:'web',name:'Inline Risk Nudge on Portfolio',type:'ux',impact:4,desc:'Zerodha shows inline yellow nudge if portfolio has 30%+ in a single stock. Embedded in view — non-intrusive UX.',adopt:'PL India: Show portfolio concentration warning inline on portfolio screen.',source:'App Store v3.8',sourceUrl:'https://apps.apple.com/in/app/zerodha-kite-trade-invest/id1333352618',sourceType:'App Store',isNew:true,bookmarked:false,time:'5h ago',isAI:true},
+  {id:'s3',broker:'angel',platform:'apk',name:'Swipe-to-Confirm Order Sheet',type:'ui',impact:4,desc:'Angel One redesigned order confirmation to a bottom sheet with swipe gesture. Reduces tap depth by 2 steps.',adopt:'Replace Buy Order page with swipe-to-confirm bottom sheet in PL India APK.',source:'Twitter @AngelOneBroking',sourceUrl:'https://twitter.com/AngelOneBroking',sourceType:'Twitter/X',isNew:false,bookmarked:true,time:'1d ago',isAI:true},
+  {id:'s4',broker:'upstox',platform:'apk',name:'Home Screen Widget — Live Prices',type:'feature',impact:5,desc:'Upstox launched Android and iOS home screen widgets. Pin 6 watchlist stocks. Updates every 60s during market hours.',adopt:'High priority for PL India. Widgets are proven DAU retention drivers.',source:'Google Play Store',sourceUrl:'https://play.google.com/store/apps/details?id=in.upstox.client',sourceType:'Play Store',isNew:false,bookmarked:false,time:'2d ago',isAI:false},
+  {id:'s5',broker:'groww',platform:'apk',name:'Daily Streak Gamification',type:'ux',impact:3,desc:'Groww added 7-day streak badge on home. Completing streaks unlocks Investor Level badges. Keeps users engaged.',adopt:'Add lightweight streak counter for PL India. Keep subtle for serious traders.',source:'Entrackr',sourceUrl:'https://entrackr.com/search/?q=groww',sourceType:'Entrackr',isNew:false,bookmarked:false,time:'3d ago',isAI:true},
+];
+function initMonitor(){feedItems=[...seedItems];renderFeed();updateStats();}
+function renderFeed(){
+  const feed=document.getElementById('monitorFeed'),empty=document.getElementById('emptyState');
+  let items=feedItems.filter(i=>mFilterActive==='all'?true:mFilterActive==='bookmarked'?i.bookmarked:i.broker===mFilterActive);
+  if(!items.length){feed.innerHTML='';empty.classList.add('show');return;}
+  empty.classList.remove('show');feed.innerHTML=items.map(cardHTML).join('');
+}
+function cardHTML(item){
+  const br=B[item.broker]||B.other;
+  const platCl=item.platform==='both'?'p-both':item.platform==='web'?'p-web':'p-apk';
+  const platLbl=item.platform==='both'?'WEB+APK':item.platform.toUpperCase();
+  const typeCl=`p-${item.type}`;
+  const stars='⭐'.repeat(item.impact);
+  const impLbl=['','Minor','Low','Medium','High','Game-changer'][item.impact]||'';
+  const bkCl=item.bookmarked?'mc-btn saved':'mc-btn';
+  const srcIcons={'Official Blog':'📝','App Store':'🍎','Play Store':'▶️','Twitter/X':'𝕏','Entrackr':'📰','Inc42':'📰','Reddit':'🔴','Other':'🔗'};
+  const si=srcIcons[item.sourceType]||'🔗';
+  const srcL=item.sourceUrl?`<a href="${item.sourceUrl}" target="_blank" rel="noopener" style="color:var(--violet);text-decoration:none;display:flex;align-items:center;gap:3px">${si} ${esc(item.source)} <span style="font-size:.5rem;opacity:.5">↗</span></a>`:`<span>${si} ${esc(item.source)}</span>`;
+  return `<div class="${item.isNew?'mcard isnew':'mcard'}" id="mc-${item.id}">
+    <div class="mc-hd">
+      <div class="mc-av" style="background:${br.bg};color:${br.col}">${br.logo}</div>
+      <div class="mc-meta">
+        <div class="mc-brow"><div class="mc-bname" style="color:${br.col}">${br.name}</div>
+          <div class="mcpills"><span class="mcpill ${platCl}">${platLbl}</span><span class="mcpill ${typeCl}">${item.type.toUpperCase()}</span>${item.isNew?'<span class="mcpill p-new">NEW</span>':''}</div></div>
+        <div class="mc-src"><div class="src-d"></div>${esc(item.source)}&nbsp;·&nbsp;<span style="color:${item.isAI?'var(--cyan)':'var(--muted)'}">${item.isAI?'🤖 AI':'✍ Manual'}</span></div>
+      </div><div class="mc-time">${item.time}</div>
+    </div>
+    <div class="mc-body">
+      <div class="mc-name">${esc(item.name)}</div>
+      <div class="mc-desc">${esc(item.desc)}</div>
+      <div class="mc-info"><div class="mip-row">
+        <div class="mip-item"><div class="mip-lbl">Source</div><div class="mip-val">${srcL}</div></div>
+        <div class="mip-item"><div class="mip-lbl">Type</div><div class="mip-val">${item.sourceType||item.type.toUpperCase()}</div></div>
+        <div class="mip-item"><div class="mip-lbl">Found By</div><div class="mip-val" style="color:${item.isAI?'var(--cyan)':'var(--violet)'}">${item.isAI?'🤖 AI':'✍'}</div></div>
+      </div></div>
+      ${item.adopt?`<div class="mc-adopt"><strong>💡 PL India:</strong> ${esc(item.adopt)}</div>`:''}
+    </div>
+    <div class="mc-foot">
+      <div class="imp-row"><div class="imp-stars">${stars}</div><div class="imp-lbl">${impLbl}</div></div>
+      <div class="mc-btns">
+        <button class="${bkCl}" onclick="toggleBkm('${item.id}')">${item.bookmarked?'⭐':'☆'} Save</button>
+        <button class="mc-btn del" onclick="delCard('${item.id}')">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+function mFilter(f,el){document.querySelectorAll('.mf-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');mFilterActive=f;renderFeed();}
+function updateStats(){
+  document.getElementById('stTotal').textContent=feedItems.length;
+  document.getElementById('stNew').textContent=feedItems.filter(i=>i.isNew).length;
+  document.getElementById('stBkm').textContent=feedItems.filter(i=>i.bookmarked).length;
+}
+function toggleBkm(id){const i=feedItems.find(x=>x.id===id);if(i){i.bookmarked=!i.bookmarked;renderFeed();updateStats();}}
+function delCard(id){if(!confirm('Remove?'))return;feedItems=feedItems.filter(x=>x.id!==id);renderFeed();updateStats();}
+async function runScan(){
+  const btn=document.getElementById('scanBtn');btn.disabled=true;btn.innerHTML='<span class="spin">⟳</span> Scanning…';
+  const prompt=`Find 3 recent UI/UX feature updates from Indian stock brokers.
+Reply in pipe format, 3 lines only:
+broker_key|platform|feature name|type|impact|description|PL India tip|source name|source type
+broker_key: zerodha groww upstox dhan angel indmoney paytm fyers
+platform: web apk both  type: ui ux feature both  impact: 1-5`;
+  try{
+    const text=await callAI([{role:'user',content:prompt}],600);
+    const lines=text.trim().split('\n').filter(l=>l.includes('|'));
+    const keys=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
+    let added=0;
+    for(const line of lines){
+      const p=line.split('|');
+      if(p.length>=6&&keys.includes(p[0]?.trim().toLowerCase())){
+        feedItems.unshift({id:'ai_'+Date.now()+'_'+added,broker:p[0].trim().toLowerCase(),platform:p[1]?.trim()||'both',
+          name:p[2]?.trim()||'New UI Update',type:p[3]?.trim()||'feature',impact:parseInt(p[4])||3,
+          desc:p[5]?.trim()||'',adopt:p[6]?.trim()||'',source:p[7]?.trim()||'AI Scan',
+          sourceType:p[8]?.trim()||'AI Scan',sourceUrl:null,isNew:true,bookmarked:false,time:'Just now',isAI:true});
+        added++;
+      }
+    }
+    if(added>0){renderFeed();updateStats();toast('🤖 AI Scan Done',`Found ${added} new updates`,'green');}
+    else toast('ℹ️ No new items','Try again or add manually','orange');
+  }catch(e){toast('⚠️ Scan Error',e.message,'red');}
+  btn.disabled=false;btn.innerHTML='⚡ AI Scan';
+}
+function openModal(){document.getElementById('overlay').classList.add('open');}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function closeModalOut(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function submitManual(){
+  const name=document.getElementById('mName').value.trim();if(!name){alert('Enter feature name');return;}
+  feedItems.unshift({id:'m_'+Date.now(),broker:document.getElementById('mBroker').value,platform:document.getElementById('mPlatform').value,
+    name,type:document.getElementById('mType').value,impact:parseInt(document.getElementById('mImpact').value),
+    desc:document.getElementById('mDesc').value.trim()||'No description.',adopt:document.getElementById('mAdopt').value.trim(),
+    source:document.getElementById('mSource').value.trim()||'Manual',sourceType:document.getElementById('mSourceType').value||'Other',
+    sourceUrl:document.getElementById('mSourceUrl').value.trim()||null,isNew:true,bookmarked:false,time:'Just now',isAI:false});
+  renderFeed();updateStats();closeModal();toast('✅ Added',name,'green');
+  ['mName','mDesc','mAdopt','mSource','mSourceUrl'].forEach(id=>document.getElementById(id).value='');
+}
+function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
+function closeLB(){document.getElementById('lb').classList.remove('open');}
+function toast(title,body,color){
+  const cols={green:'var(--green)',red:'var(--red)',orange:'var(--orange)',cyan:'var(--cyan)'};
+  const c=cols[color]||'var(--violet)';
+  const tc=document.getElementById('toasts'),t=document.createElement('div');t.className='toast';
+  t.innerHTML=`<div class="t-ico">📡</div><div style="flex:1"><div class="t-title" style="color:${c}">${title}</div><div class="t-body">${body}</div></div><div class="t-x" onclick="this.parentElement.remove()">✕</div><div class="tbar" style="background:${c}"></div>`;
+  tc.appendChild(t);setTimeout(()=>{t.classList.add('fade-out');setTimeout(()=>t.remove(),220);},4200);
+}
+// INIT
+initMonitor();
+renderRoadmap();
+setTimeout(()=>toast('👋 PL India Research Hub','Enter your API key to activate AI features','green'),700);
+</script>
+</body>
+</html>
