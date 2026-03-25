@@ -631,16 +631,12 @@ function saveKey(){
 }
 
 async function callAI(messages, maxTokens=800){
-  // Hosted: call /api/claude proxy, send user key in header as fallback
-  // Local:  call Anthropic directly with user key
-  const headers = {'Content-Type':'application/json'};
-  if(API_KEY) headers['x-user-api-key'] = API_KEY;
-
   if(IS_HOSTED){
+    // Send key in body — headers get stripped, body never does
     const res=await fetch(API_PROXY,{
       method:'POST',
-      headers,
-      body:JSON.stringify({messages, max_tokens:maxTokens})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages, max_tokens:maxTokens, user_key: API_KEY||''})
     });
     const d=await res.json();
     if(!res.ok) throw new Error(d?.error||'API error '+res.status);
@@ -738,83 +734,200 @@ function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 // ══════════ DOCHAT ══════════
 async function doChat(query){
   const KEYS=['zerodha','groww','upstox','dhan','angel','indmoney','paytm','fyers'];
-  const prompt=`You are a senior UI/UX analyst for Indian stock trading apps.
-Analyze the UI pattern "${query}" across 8 brokers.
-Respond with EXACTLY 10 lines. Nothing else. No intro. No explanation.
-Line 1-8: one broker each:
-key|rank|visual|ease|speed|clarity|unique|overall|live_price|filters|fuzzy|trending|standout|verdict|weakness
-- key: zerodha groww upstox dhan angel indmoney paytm fyers
-- rank: 1-8 integer
-- scores: decimals like 8.5
-- live_price filters fuzzy trending: YES or NO
-- standout/verdict/weakness: short phrases no pipes
+
+  // Ask Claude for JSON — simple flat structure, query-specific features
+  const prompt=`You are a UI/UX expert for Indian stock trading and investment apps.
+The user wants to compare the UI pattern: "${query}"
+Analyze how each of these 8 brokers implements this specific UI pattern:
+Zerodha, Groww, Upstox, Dhan, Angel One, INDmoney, Paytm Money, Fyers.
+
+Return ONLY a JSON object. No text before or after. No markdown. No backticks.
+Use this exact structure:
+{
+  "pattern": "clean title for ${query}",
+  "intro": "one sentence about this UI pattern in trading apps",
+  "f1_name": "first relevant feature name for ${query} (max 3 words)",
+  "f2_name": "second relevant feature name for ${query} (max 3 words)",
+  "f3_name": "third relevant feature name for ${query} (max 3 words)",
+  "f4_name": "fourth relevant feature name for ${query} (max 3 words)",
+  "winner": "one of: zerodha groww upstox dhan angel indmoney paytm fyers",
+  "plindia": "actionable tip for PL India in max 15 words",
+  "brokers": [
+    {
+      "key": "dhan",
+      "rank": 1,
+      "visual": 9.2,
+      "ease": 9.0,
+      "speed": 9.5,
+      "clarity": 9.0,
+      "overall": 9.1,
+      "f1": true,
+      "f2": true,
+      "f3": false,
+      "f4": true,
+      "standout": "brief standout feature max 6 words",
+      "verdict": "honest assessment max 10 words",
+      "weakness": "main weakness max 6 words"
+    }
+  ]
+}
+Include all 8 brokers in the brokers array, ranked 1-8 (1=best for ${query}).
+f1 f2 f3 f4 are boolean true/false for each broker.
+Base your analysis specifically on "${query}" — not generic scores.`;
+
+  try {
+    const raw = await callAI([{role:'user', content:prompt}], 1200);
+    // Clean and parse JSON
+    let cleaned = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+    const start = cleaned.indexOf('{');
+    const end   = cleaned.lastIndexOf('}');
+    if(start === -1 || end === -1) throw new Error('No JSON in response');
+    cleaned = cleaned.slice(start, end+1);
+    // Fix trailing commas
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+    const data = JSON.parse(cleaned);
+
+    // Validate we got real broker data
+    if(!data.brokers || data.brokers.length < 4) throw new Error('Incomplete response');
+
+    // Fill missing brokers if any
+    KEYS.forEach(k => {
+      if(!data.brokers.find(b => b.key === k)){
+        data.brokers.push({key:k, rank:data.brokers.length+1, visual:7, ease:7, speed:7, clarity:7, overall:7, f1:false, f2:false, f3:false, f4:false, standout:'Standard implementation', verdict:'Average for this pattern', weakness:'Needs improvement'});
+      }
+    });
+    data.brokers.sort((a,b) => a.rank - b.rank);
+    data.isAI = true; // mark as real AI result
+    return data;
+
+  } catch(err) {
+    // If JSON parse fails, try pipe format as backup
+    console.warn('JSON parse failed, trying pipe fallback:', err.message);
+    try {
+      const pipePrompt=`Analyze "${query}" UI pattern across 8 Indian broker apps.
+Reply with EXACTLY 8 lines then 2 more. No other text.
+Lines 1-8: broker_key|rank|visual|ease|speed|clarity|overall|standout text|verdict text|weakness text
+- keys: zerodha groww upstox dhan angel indmoney paytm fyers
+- rank 1-8, scores 1-10 decimals, text fields no pipes
 Line 9: winner key
-Line 10: PL India tip 15 words max`;
-  const raw=await callAI([{role:'user',content:prompt}],800);
-  return parsePipe(raw,query,KEYS);
+Line 10: PL India tip max 12 words`;
+      const raw2 = await callAI([{role:'user', content:pipePrompt}], 600);
+      return parsePipeSimple(raw2, query, KEYS);
+    } catch(err2) {
+      // Return error — don't silently show wrong data
+      throw new Error('Could not parse AI response for "'+query+'". Try again.');
+    }
+  }
 }
 
-function parsePipe(raw,query,KEYS){
-  const lines=raw.trim().split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-  const brokers=[];let winner='dhan',plindia='Prioritize speed and live price data in all results.';
+function parsePipeSimple(raw, query, KEYS){
+  const lines = raw.trim().split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+  const brokers=[];let winner='dhan',plindia='Study top brokers and adapt the best patterns for PL India.';
   for(const line of lines){
-    if(line.startsWith('//')||line.startsWith('#')||line.startsWith('key|')||line.startsWith('---'))continue;
-    const p=line.split('|'),key=p[0]?.toLowerCase().trim();
-    if(p.length>=12&&KEYS.includes(key)){
-      brokers.push({key,rank:parseInt(p[1])||brokers.length+1,
-        scores:{visual:parseFloat(p[2])||7.5,ease:parseFloat(p[3])||7.5,speed:parseFloat(p[4])||7.5,clarity:parseFloat(p[5])||7.5,unique:parseFloat(p[6])||7.5},
-        overall:parseFloat(p[7])||7.5,
-        features:{live_price:p[8]?.toUpperCase()==='YES',filters:p[9]?.toUpperCase()==='YES',fuzzy:p[10]?.toUpperCase()==='YES',trending:p[11]?.toUpperCase()==='YES'},
-        standout:p[12]?.trim()||'Solid implementation',verdict:p[13]?.trim()||'Good pattern',weakness:p[14]?.trim()||'Could improve',
+    if(line.startsWith('#')||line.startsWith('key|')||line.startsWith('---')) continue;
+    const p=line.split('|'), key=p[0]?.toLowerCase().trim();
+    if(p.length>=8 && KEYS.includes(key)){
+      brokers.push({key, rank:parseInt(p[1])||brokers.length+1,
+        visual:parseFloat(p[2])||7.5, ease:parseFloat(p[3])||7.5,
+        speed:parseFloat(p[4])||7.5, clarity:parseFloat(p[5])||7.5, overall:parseFloat(p[6])||7.5,
+        f1:true, f2:false, f3:false, f4:false,
+        standout:p[7]?.trim()||'Solid implementation',
+        verdict:p[8]?.trim()||'Good overall pattern',
+        weakness:p[9]?.trim()||'Room to improve',
       });
-    }else if(p.length===1&&KEYS.includes(key)){winner=key;}
+    } else if(p.length===1&&KEYS.includes(key)){winner=key;}
     else if(p.length===1&&line.length>8&&!KEYS.includes(key)&&brokers.length>=4){plindia=line;}
   }
-  if(brokers.length<5) return buildFallback(query);
-  KEYS.forEach(k=>{if(!brokers.find(b=>b.key===k))brokers.push({key:k,rank:brokers.length+1,scores:{visual:7,ease:7,speed:7,clarity:7,unique:7},overall:7,features:{live_price:false,filters:false,fuzzy:false,trending:false},standout:'Standard',verdict:'Average pattern',weakness:'Limited'});});
+  if(brokers.length<4) throw new Error('Could not parse response');
+  KEYS.forEach(k=>{if(!brokers.find(b=>b.key===k)) brokers.push({key:k,rank:brokers.length+1,visual:7,ease:7,speed:7,clarity:7,overall:7,f1:false,f2:false,f3:false,f4:false,standout:'Standard',verdict:'Average pattern',weakness:'Limited'});});
   brokers.sort((a,b)=>a.rank-b.rank);
-  return{pattern:query.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '),intro:`Comparing ${query} across 8 major Indian trading apps.`,brokers,winner,plindia};
-}
-
-function buildFallback(query){
-  return{pattern:query.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '),intro:`Comparing ${query} across 8 major Indian trading apps.`,
-    brokers:[
-      {key:'dhan',    rank:1,overall:9.1,scores:{visual:9.2,ease:9.0,speed:9.5,clarity:9.0,unique:9.0},features:{live_price:true, filters:true, fuzzy:true, trending:true}, standout:'Best overall implementation',  verdict:'Industry leader for this UI pattern',   weakness:'Complex for new users'},
-      {key:'angel',   rank:2,overall:8.6,scores:{visual:8.5,ease:8.8,speed:8.7,clarity:8.5,unique:8.3},features:{live_price:true, filters:true, fuzzy:true, trending:true}, standout:'Excellent filter and flow',    verdict:'Very strong on APK and web',           weakness:'Web heavier than APK'},
-      {key:'zerodha', rank:3,overall:8.2,scores:{visual:7.8,ease:8.8,speed:9.0,clarity:8.2,unique:7.0},features:{live_price:true, filters:false,fuzzy:true, trending:false},standout:'Fastest response time',         verdict:'Fast and reliable but visually dated', weakness:'No filter tabs'},
-      {key:'upstox',  rank:4,overall:8.0,scores:{visual:9.0,ease:7.8,speed:7.9,clarity:8.0,unique:8.2},features:{live_price:false,filters:true, fuzzy:true, trending:true}, standout:'Most modern visual design',    verdict:'Beautiful but missing live prices',    weakness:'No live price'},
-      {key:'groww',   rank:5,overall:7.8,scores:{visual:8.2,ease:8.0,speed:7.8,clarity:7.8,unique:6.5},features:{live_price:false,filters:false,fuzzy:false,trending:true},  standout:'Best beginner UX',             verdict:'Clean but lacks trader depth',         weakness:'No filters'},
-      {key:'indmoney',rank:6,overall:7.1,scores:{visual:7.5,ease:7.0,speed:7.0,clarity:7.2,unique:6.8},features:{live_price:false,filters:false,fuzzy:false,trending:true},  standout:'India and US unified view',    verdict:'Good wealth app weak for trading',     weakness:'Slow search'},
-      {key:'paytm',   rank:7,overall:6.4,scores:{visual:6.5,ease:6.8,speed:6.5,clarity:6.5,unique:5.5},features:{live_price:false,filters:false,fuzzy:false,trending:false}, standout:'Familiar brand recognition',   verdict:'Dated UI and afterthought design',     weakness:'Slowest response'},
-      {key:'fyers',   rank:8,overall:6.9,scores:{visual:6.2,ease:7.0,speed:7.5,clarity:6.8,unique:7.0},features:{live_price:false,filters:true, fuzzy:false,trending:false}, standout:'Strong F and O tools',         verdict:'Power traders not beginners',          weakness:'Not beginner friendly'},
-    ],winner:'dhan',plindia:'Study Dhan and Angel One. Prioritize speed and live data in all results.'};
+  return{pattern:query.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '),
+    intro:`Comparing ${query} UI pattern across 8 major Indian trading apps.`,
+    f1_name:'Has feature',f2_name:'Clean design',f3_name:'Easy to use',f4_name:'Mobile ready',
+    brokers,winner,plindia,isAI:true};
 }
 
 function buildCR(data){
   const sorted=[...(data.brokers||[])].sort((a,b)=>a.rank-b.rank);
   const wB=B[data.winner]||{name:data.winner||'',col:'var(--green)'};
+  const f1n = data.f1_name||'Feature 1';
+  const f2n = data.f2_name||'Feature 2';
+  const f3n = data.f3_name||'Feature 3';
+  const f4n = data.f4_name||'Feature 4';
+
   const cards=sorted.map(b=>{
     const br=B[b.key]||B.other;
     const rkcl=b.rank===1?'r1':b.rank===2?'r2':b.rank===3?'r3':'';
     const rkbcl=b.rank===1?'rk1c':b.rank===2?'rk2c':b.rank===3?'rk3c':'rknc';
     const rkl=b.rank===1?'🥇':b.rank===2?'🥈':b.rank===3?'🥉':`#${b.rank}`;
     const col=b.overall>=8.5?'var(--green)':b.overall>=7?'var(--gold)':'var(--muted)';
-    const tags=Object.entries(b.features||{}).map(([k,v])=>`<span class="btag ${v?'bty':'btn2'}">${v?'✓':'✗'} ${k.replace(/_/g,' ')}</span>`).join('');
-    const slines=['RELIANCE','INFY','TCS'].map((s,i)=>`<div class="mm-row"><div class="mm-dot" style="background:${br.col}22;color:${br.col}">${s[0]}</div><div class="mm-sname" style="color:rgba(220,225,255,.85)">${s}</div><div><div class="mm-price" style="color:rgba(220,225,255,.9)">₹${['2890','1450','3720'][i]}</div><div class="mm-chg ${i===1?'dn':'up'}">${['+1.2%','-0.8%','+0.5%'][i]}</div></div></div>`).join('');
-    return `<div class="bcard ${rkcl}"><div class="bc-top"><div style="display:flex;align-items:center;gap:4px"><div class="bc-name" style="color:${br.col}">${br.name}</div><span class="bc-rnk ${rkbcl}">${rkl}</span></div><div class="bc-score" style="color:${col}">${b.overall}</div></div>
-    <div class="mmock" style="background:rgba(8,8,30,.7)"><div class="mm-bar"><span style="font-size:.56rem">🔍</span><span style="color:rgba(255,255,255,.2);font-size:.46rem">Search…</span></div>
-    ${b.features?.filters?`<div class="mm-pills"><div class="mm-pill" style="background:${br.col};color:#000">All</div><div class="mm-pill" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.3)">Equity</div><div class="mm-pill" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.3)">F&O</div></div>`:''}
-    ${slines}</div>
-    <div class="bc-tags">${tags}</div>
-    ${b.standout?`<div style="padding:2px 7px 4px;font-size:.57rem;color:var(--cyan);font-weight:600">⭐ ${esc(b.standout)}</div>`:''}
-    <div class="bc-verdict" style="border-left:2px solid ${br.col};padding-left:6px;margin:0 7px 7px">${esc(b.verdict||'')}${b.weakness?`<div style="color:var(--red);font-size:.57rem;margin-top:2px">⚠ ${esc(b.weakness)}</div>`:''}</div></div>`;
+
+    // Dynamic feature tags based on query-specific feature names
+    const featureTags=[
+      `<span class="btag ${b.f1?'bty':'btn2'}">${b.f1?'✓':'✗'} ${esc(f1n)}</span>`,
+      `<span class="btag ${b.f2?'bty':'btn2'}">${b.f2?'✓':'✗'} ${esc(f2n)}</span>`,
+      `<span class="btag ${b.f3?'bty':'btn2'}">${b.f3?'✓':'✗'} ${esc(f3n)}</span>`,
+      `<span class="btag ${b.f4?'bty':'btn2'}">${b.f4?'✓':'✗'} ${esc(f4n)}</span>`,
+    ].join('');
+
+    // Score bars
+    const scoreBars=[
+      {label:'Visual',val:b.visual||7.5},
+      {label:'Ease',val:b.ease||7.5},
+      {label:'Speed',val:b.speed||7.5},
+      {label:'Clarity',val:b.clarity||7.5},
+    ].map(s=>{
+      const pct=Math.min(100,(s.val/10)*100);
+      const c=s.val>=8.5?'var(--green)':s.val>=7?'var(--accent)':'var(--muted)';
+      return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+        <div style="font-size:.55rem;color:var(--text2);min-width:44px">${s.label}</div>
+        <div style="flex:1;background:var(--bg3);border-radius:2px;height:3px;"><div style="width:${pct}%;height:3px;border-radius:2px;background:${c}"></div></div>
+        <div style="font-size:.55rem;font-weight:600;color:${c};min-width:18px;text-align:right">${s.val}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="bcard ${rkcl}">
+      <div class="bc-top">
+        <div style="display:flex;align-items:center;gap:4px">
+          <div class="bc-name" style="color:${br.col}">${br.name}</div>
+          <span class="bc-rnk ${rkbcl}">${rkl}</span>
+        </div>
+        <div class="bc-score" style="color:${col}">${b.overall}</div>
+      </div>
+      <div style="padding:8px 9px 4px;">${scoreBars}</div>
+      <div class="bc-tags">${featureTags}</div>
+      ${b.standout?`<div style="padding:2px 7px 4px;font-size:.57rem;color:var(--cyan);font-weight:600">⭐ ${esc(b.standout)}</div>`:''}
+      <div class="bc-verdict" style="border-left:2px solid ${br.col};padding-left:6px;margin:0 7px 7px">
+        ${esc(b.verdict||'')}
+        ${b.weakness?`<div style="color:var(--red);font-size:.57rem;margin-top:2px">⚠ ${esc(b.weakness)}</div>`:''}
+      </div>
+    </div>`;
   }).join('');
+
   const tRows=sorted.map(b=>{
-    const br=B[b.key]||B.other;const pct=Math.min(100,(b.overall/10)*100);
+    const br=B[b.key]||B.other;
+    const pct=Math.min(100,(b.overall/10)*100);
     const col=b.overall>=8.5?'var(--green)':b.overall>=7?'var(--gold)':'var(--muted)';
-    return `<tr><td><span class="rn-num" style="color:${col}">${b.rank}</span></td><td style="color:${br.col};font-weight:600;font-size:.7rem">${br.name}</td><td><span class="rn-bar"><span class="rn-fill" style="display:block;width:${pct}%;background:${col}"></span></span></td><td style="font-weight:700;color:${col};font-size:.7rem">${b.overall}</td></tr>`;
+    return `<tr>
+      <td><span class="rn-num" style="color:${col}">${b.rank}</span></td>
+      <td style="color:${br.col};font-weight:600;font-size:.7rem">${br.name}</td>
+      <td><span class="rn-bar"><span class="rn-fill" style="display:block;width:${pct}%;background:${col}"></span></span></td>
+      <td style="font-weight:700;color:${col};font-size:.7rem">${b.overall}</td>
+    </tr>`;
   }).join('');
-  return `<div class="cr-hd"><div class="cr-title">📊 ${esc(data.pattern||'')} — 8 Brokers</div><div class="cr-win">🏆 Best: ${wB.name}</div></div>
+
+  const aiLabel = data.isAI
+    ? `<span style="font-size:.6rem;color:var(--green);font-family:monospace;font-weight:600">🤖 AI Analysis</span>`
+    : `<span style="font-size:.6rem;color:var(--muted);font-family:monospace">📋 Demo Data</span>`;
+
+  return `
+  <div class="cr-hd">
+    <div class="cr-title">📊 ${esc(data.pattern||'')} — 8 Brokers</div>
+    <div style="display:flex;align-items:center;gap:8px;">${aiLabel}<div class="cr-win">🏆 Best: ${wB.name}</div></div>
+  </div>
+  <div style="padding:6px 10px 4px;font-size:.65rem;color:var(--text2);border:0.5px solid var(--border);border-top:none;background:var(--bg2);">
+    Comparing: <strong style="color:var(--text)">${esc(f1n)}</strong> · <strong style="color:var(--text)">${esc(f2n)}</strong> · <strong style="color:var(--text)">${esc(f3n)}</strong> · <strong style="color:var(--text)">${esc(f4n)}</strong>
+  </div>
   <div class="bscroll">${cards}</div>
   <div class="rank-mini"><table><thead><tr><th>#</th><th>Broker</th><th>Score</th><th>Rating</th></tr></thead><tbody>${tRows}</tbody></table></div>
   ${data.plindia?`<div class="pli-box"><strong>💡 PL India:</strong> ${esc(data.plindia)}</div>`:''}`;
