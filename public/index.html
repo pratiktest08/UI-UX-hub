@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +9,22 @@
 <style>
 :root{
   --navy:#0F0F83;--navy2:#272756;--violet:#4C4CCC;--green:#1FB15A;--green2:#17963f;
+  --gold:#f5b800;--red:#ff4560;--orange:#ff8c42;--cyan:#00cfff;
+}
+[data-theme="dark"]{
   --bg:#0d0d2e;--bg2:#111138;--bg3:#161648;--sidebar:#09091f;
   --card:#141442;--card2:#1a1a52;
   --border:rgba(76,76,204,.18);--bord2:rgba(76,76,204,.35);
   --text:#e4e8ff;--text2:#9098c8;--muted:#565c88;
-  --gold:#f5b800;--red:#ff4560;--orange:#ff8c42;--cyan:#00cfff;
 }
+[data-theme="light"]{
+  --bg:#f0f1ff;--bg2:#e8eaff;--bg3:#dfe2ff;--sidebar:#f7f8ff;
+  --card:#ffffff;--card2:#eef0ff;
+  --border:rgba(76,76,204,.16);--bord2:rgba(76,76,204,.32);
+  --text:#1a1a4e;--text2:#46497a;--muted:#8890c8;
+}
+.theme-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.theme-btn:hover{border-color:var(--bord2);}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;display:flex;flex-direction:column;height:100vh;}
@@ -359,6 +369,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="tn-tab">Analytics</div>
   </div>
   <div class="tn-right">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">🌙</button>
     <div class="api-wrap">
       <span style="font-size:.82rem">🔑</span>
       <input class="api-input" id="apiKeyInput" type="password" placeholder="Paste sk-ant-... API key here" onkeydown="if(event.key==='Enter')saveKey()">
@@ -378,10 +389,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="frow">
       <div class="fg"><label class="fl">Broker</label>
         <select class="fs" id="mBroker">
-          <option value="zerodha">Zerodha</option><option value="groww">Groww</option>
-          <option value="upstox">Upstox</option><option value="dhan">Dhan</option>
-          <option value="angel">Angel One</option><option value="indmoney">INDmoney</option>
-          <option value="paytm">Paytm Money</option><option value="fyers">Fyers</option><option value="other">Other</option>
+          <optgroup label="Discount"><option value="zerodha">Zerodha</option><option value="groww">Groww</option><option value="upstox">Upstox</option><option value="dhan">Dhan</option><option value="paytm">Paytm Money</option><option value="fyers">Fyers</option><option value="5paisa">5paisa</option><option value="mstock">mStock</option><option value="alice">Alice Blue</option><option value="samco">Samco</option><option value="wisdom">Wisdom Capital</option><option value="finvasia">Finvasia</option><option value="trade">Tradejini</option><option value="share">Share.Market</option></optgroup>
+          <optgroup label="Full Service"><option value="angel">Angel One</option><option value="hdfc">HDFC Sky</option><option value="icici">ICICI Direct</option><option value="kotak">Kotak Neo</option><option value="sbi">SBI Securities</option><option value="axis">Axis Direct</option><option value="motilal">Motilal Oswal</option><option value="sharekhan">Sharekhan</option><option value="iifl">IIFL Securities</option><option value="reliance">Reliance Money</option><option value="bob">BOB Capital</option></optgroup>
+          <optgroup label="Wealth"><option value="indmoney">INDmoney</option></optgroup>
+          <optgroup label="Regional"><option value="nirmal">Nirmal Bang</option></optgroup>
+          <option value="other">Other</option>
         </select></div>
       <div class="fg"><label class="fl">Platform</label>
         <select class="fs" id="mPlatform"><option value="apk">APK</option><option value="web">Web</option><option value="both">Both</option></select></div>
@@ -441,19 +453,27 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="sidebar">
     <div class="sb-head"><div class="sb-lbl">Command Center</div></div>
     <div class="sb-nav">
-      <div class="nav-item" onclick="sq('search bar')"><span class="nav-ico">🔍</span>Search</div>
-      <div class="nav-item active" id="navOrderFlow" onclick="sq('order flow')"><span class="nav-ico">↔️</span>Order Flow</div>
+      <div class="nav-item" onclick="sq('search bar')"><span class="nav-ico">🔍</span>Search Bar</div>
+      <div class="nav-item active" onclick="sq('order flow')"><span class="nav-ico">↔️</span>Order Flow</div>
       <div class="nav-item" onclick="sq('portfolio screen')"><span class="nav-ico">◑</span>Portfolio</div>
       <div class="nav-item" onclick="sq('watchlist design')"><span class="nav-ico">👁</span>Watchlist</div>
-      <div class="nav-item" onclick="sq('settings UI')"><span class="nav-ico">⚙️</span>Settings</div>
-      <div class="sb-sec">More Patterns</div>
       <div class="nav-item" onclick="sq('home screen layout')"><span class="nav-ico">🏠</span>Home Screen</div>
       <div class="nav-item" onclick="sq('stock chart UI')"><span class="nav-ico">📈</span>Chart UI</div>
+      <div class="nav-item" onclick="sq('login page UI')"><span class="nav-ico">🔐</span>Login Page</div>
       <div class="nav-item" onclick="sq('onboarding flow')"><span class="nav-ico">🚪</span>Onboarding</div>
+      <div class="sb-sec">More Patterns</div>
       <div class="nav-item" onclick="sq('mutual funds UI')"><span class="nav-ico">💰</span>Mutual Funds</div>
       <div class="nav-item" onclick="sq('price alerts UI')"><span class="nav-ico">🔔</span>Alerts</div>
       <div class="nav-item" onclick="sq('bottom navigation')"><span class="nav-ico">🧭</span>Navigation</div>
       <div class="nav-item" onclick="sq('dark mode design')"><span class="nav-ico">🌙</span>Dark Mode</div>
+      <div class="nav-item" onclick="sq('settings UI')"><span class="nav-ico">⚙️</span>Settings</div>
+      <div class="sb-sec">Compare</div>
+      <div class="nav-item" onclick="sq('Zerodha vs Dhan search bar comparison')"><span class="nav-ico">⚡</span>Zerodha vs Dhan</div>
+      <div class="nav-item" onclick="sq('HDFC Sky vs Kotak Neo order flow UI')"><span class="nav-ico">⚡</span>HDFC vs Kotak</div>
+      <div class="nav-item" onclick="sq('Groww vs Angel One onboarding UI')"><span class="nav-ico">⚡</span>Groww vs Angel</div>
+      <div class="sb-sec">By Category</div>
+      <div class="nav-item" onclick="sq('discount brokers search bar: Zerodha Groww Upstox Dhan Fyers 5paisa mStock')"><span class="nav-ico">💳</span>Discount Brokers</div>
+      <div class="nav-item" onclick="sq('full service brokers home screen: HDFC Angel Kotak Motilal ICICI Sharekhan')"><span class="nav-ico">🏦</span>Full Service</div>
     </div>
     <div class="sb-bottom">
       <button class="new-btn" onclick="clearChat()">＋ New Analysis</button>
@@ -575,18 +595,35 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="mon-acts">
           <button class="mact pri" id="scanBtn" onclick="runScan()">⚡ AI Scan</button>
           <button class="mact" onclick="openModal()">＋ Add</button>
-        </div>
-      </div>
-      <div class="mon-stats">
-        <div class="mstat"><span class="mstat-v" id="stTotal">0</span> updates</div>
-        <div class="mstat"><span class="mstat-v" id="stNew" style="color:var(--green)">0</span> new</div>
-        <div class="mstat"><span class="mstat-v" id="stBkm" style="color:var(--gold)">0</span> saved</div>
-      </div>
-    </div>
     <div class="mon-filters">
       <button class="mf-chip active" onclick="mFilter('all',this)">All</button>
+      <span style="font-size:.56rem;color:var(--muted);padding:2px 3px;display:flex;align-items:center;white-space:nowrap">Discount:</span>
       <button class="mf-chip" onclick="mFilter('zerodha',this)">Zerodha</button>
       <button class="mf-chip" onclick="mFilter('groww',this)">Groww</button>
+      <button class="mf-chip" onclick="mFilter('upstox',this)">Upstox</button>
+      <button class="mf-chip" onclick="mFilter('dhan',this)">Dhan</button>
+      <button class="mf-chip" onclick="mFilter('paytm',this)">Paytm</button>
+      <button class="mf-chip" onclick="mFilter('fyers',this)">Fyers</button>
+      <button class="mf-chip" onclick="mFilter('5paisa',this)">5paisa</button>
+      <button class="mf-chip" onclick="mFilter('mstock',this)">mStock</button>
+      <button class="mf-chip" onclick="mFilter('alice',this)">Alice Blue</button>
+      <button class="mf-chip" onclick="mFilter('samco',this)">Samco</button>
+      <button class="mf-chip" onclick="mFilter('share',this)">Share.Market</button>
+      <span style="font-size:.56rem;color:var(--muted);padding:2px 3px;display:flex;align-items:center;white-space:nowrap">Full Service:</span>
+      <button class="mf-chip" onclick="mFilter('angel',this)">Angel One</button>
+      <button class="mf-chip" onclick="mFilter('hdfc',this)">HDFC Sky</button>
+      <button class="mf-chip" onclick="mFilter('icici',this)">ICICI Direct</button>
+      <button class="mf-chip" onclick="mFilter('kotak',this)">Kotak Neo</button>
+      <button class="mf-chip" onclick="mFilter('sbi',this)">SBI Sec</button>
+      <button class="mf-chip" onclick="mFilter('axis',this)">Axis</button>
+      <button class="mf-chip" onclick="mFilter('motilal',this)">Motilal</button>
+      <button class="mf-chip" onclick="mFilter('sharekhan',this)">Sharekhan</button>
+      <button class="mf-chip" onclick="mFilter('iifl',this)">IIFL</button>
+      <button class="mf-chip" onclick="mFilter('reliance',this)">Reliance</button>
+      <span style="font-size:.56rem;color:var(--muted);padding:2px 3px;display:flex;align-items:center;white-space:nowrap">Wealth:</span>
+      <button class="mf-chip" onclick="mFilter('indmoney',this)">INDmoney</button>
+      <button class="mf-chip" onclick="mFilter('bookmarked',this)">⭐ Saved</button>
+    </div>
       <button class="mf-chip" onclick="mFilter('dhan',this)">Dhan</button>
       <button class="mf-chip" onclick="mFilter('angel',this)">Angel</button>
       <button class="mf-chip" onclick="mFilter('upstox',this)">Upstox</button>
@@ -608,26 +645,68 @@ const IS_HOSTED = window.location.hostname !== 'localhost' && window.location.ho
 const API_PROXY  = '/api/claude';
 
 const B={
-  zerodha:{name:'Zerodha',  col:'#4a9eff',bg:'rgba(74,158,255,.12)', lbg:'#1565c0',logo:'Z'},
-  groww:  {name:'Groww',    col:'#00c896',bg:'rgba(0,200,150,.12)',  lbg:'#00796b',logo:'G'},
-  upstox: {name:'Upstox',   col:'#b06cff',bg:'rgba(176,108,255,.12)',lbg:'#7b1fa2',logo:'U'},
-  dhan:   {name:'Dhan',     col:'#00e5ff',bg:'rgba(0,229,255,.1)',   lbg:'#006064',logo:'D'},
-  angel:  {name:'Angel One',col:'#ffcc00',bg:'rgba(255,204,0,.1)',   lbg:'#e65100',logo:'A'},
-  indmoney:{name:'INDmoney',col:'#ff7043',bg:'rgba(255,112,67,.12)', lbg:'#bf360c',logo:'I'},
-  paytm:  {name:'Paytm',    col:'#00b4d8',bg:'rgba(0,180,216,.1)',   lbg:'#01579b',logo:'P'},
-  fyers:  {name:'Fyers',    col:'#ff5252',bg:'rgba(255,82,82,.12)',  lbg:'#b71c1c',logo:'F'},
-  other:  {name:'Other',    col:'#aaa',   bg:'rgba(170,170,170,.1)', lbg:'#555',   logo:'?'},
+  // Discount
+  zerodha:  {name:"Zerodha",      col:"#4a9eff",bg:"rgba(74,158,255,.12)",  lbg:"#1565c0",logo:"Z", cat:"Discount"},
+  groww:    {name:"Groww",        col:"#00c896",bg:"rgba(0,200,150,.12)",   lbg:"#00796b",logo:"G", cat:"Discount"},
+  upstox:   {name:"Upstox",       col:"#b06cff",bg:"rgba(176,108,255,.12)", lbg:"#7b1fa2",logo:"U", cat:"Discount"},
+  dhan:     {name:"Dhan",         col:"#00e5ff",bg:"rgba(0,229,255,.1)",    lbg:"#006064",logo:"D", cat:"Discount"},
+  paytm:    {name:"Paytm Money",  col:"#00b4d8",bg:"rgba(0,180,216,.1)",    lbg:"#01579b",logo:"P", cat:"Discount"},
+  fyers:    {name:"Fyers",        col:"#ff5252",bg:"rgba(255,82,82,.12)",   lbg:"#b71c1c",logo:"F", cat:"Discount"},
+  "5paisa": {name:"5paisa",       col:"#e91e8c",bg:"rgba(233,30,140,.1)",   lbg:"#880e4f",logo:"5", cat:"Discount"},
+  mstock:   {name:"mStock",       col:"#1976d2",bg:"rgba(25,118,210,.12)",  lbg:"#0d47a1",logo:"M", cat:"Discount"},
+  alice:    {name:"Alice Blue",   col:"#0ea5e9",bg:"rgba(14,165,233,.1)",   lbg:"#0369a1",logo:"AB",cat:"Discount"},
+  samco:    {name:"Samco",        col:"#84cc16",bg:"rgba(132,204,22,.1)",   lbg:"#4d7c0f",logo:"SC",cat:"Discount"},
+  wisdom:   {name:"Wisdom Capital",col:"#a855f7",bg:"rgba(168,85,247,.1)", lbg:"#7e22ce",logo:"WC",cat:"Discount"},
+  finvasia: {name:"Finvasia",     col:"#06b6d4",bg:"rgba(6,182,212,.1)",    lbg:"#0e7490",logo:"FV",cat:"Discount"},
+  trade:    {name:"Tradejini",    col:"#f97316",bg:"rgba(249,115,22,.1)",   lbg:"#c2410c",logo:"TJ",cat:"Discount"},
+  share:    {name:"Share.Market", col:"#00acc1",bg:"rgba(0,172,193,.1)",    lbg:"#006064",logo:"SM",cat:"Discount"},
+  // Full Service
+  angel:    {name:"Angel One",    col:"#ffcc00",bg:"rgba(255,204,0,.1)",    lbg:"#e65100",logo:"A", cat:"Full Service"},
+  hdfc:     {name:"HDFC Sky",     col:"#ef4444",bg:"rgba(239,68,68,.1)",    lbg:"#b91c1c",logo:"H", cat:"Full Service"},
+  icici:    {name:"ICICI Direct", col:"#f97316",bg:"rgba(249,115,22,.1)",   lbg:"#c2410c",logo:"IC",cat:"Full Service"},
+  kotak:    {name:"Kotak Neo",    col:"#e53935",bg:"rgba(229,57,53,.1)",    lbg:"#b71c1c",logo:"K", cat:"Full Service"},
+  sbi:      {name:"SBI Securities",col:"#22c55e",bg:"rgba(34,197,94,.1)",  lbg:"#15803d",logo:"SB",cat:"Full Service"},
+  axis:     {name:"Axis Direct",  col:"#9333ea",bg:"rgba(147,51,234,.1)",   lbg:"#7e22ce",logo:"AX",cat:"Full Service"},
+  motilal:  {name:"Motilal Oswal",col:"#06b6d4",bg:"rgba(6,182,212,.1)",   lbg:"#0e7490",logo:"MO",cat:"Full Service"},
+  sharekhan:{name:"Sharekhan",    col:"#8b5cf6",bg:"rgba(139,92,246,.1)",   lbg:"#6d28d9",logo:"SK",cat:"Full Service"},
+  iifl:     {name:"IIFL Securities",col:"#10b981",bg:"rgba(16,185,129,.1)",lbg:"#047857",logo:"II",cat:"Full Service"},
+  reliance: {name:"Reliance Money",col:"#3b82f6",bg:"rgba(59,130,246,.1)", lbg:"#1d4ed8",logo:"R", cat:"Full Service"},
+  bob:      {name:"BOB Capital",  col:"#f59e0b",bg:"rgba(245,158,11,.1)",   lbg:"#b45309",logo:"BC",cat:"Full Service"},
+  // Wealth
+  indmoney: {name:"INDmoney",     col:"#ff7043",bg:"rgba(255,112,67,.12)",  lbg:"#bf360c",logo:"I", cat:"Wealth"},
+  // Regional
+  nirmal:   {name:"Nirmal Bang",  col:"#f43f5e",bg:"rgba(244,63,94,.1)",    lbg:"#be123c",logo:"NB",cat:"Regional"},
+  other:    {name:"Other",        col:"#aaa",   bg:"rgba(170,170,170,.1)",  lbg:"#555",   logo:"?", cat:"Other"},
 };
 
 // ══════════ API ══════════
-let API_KEY='';
+let API_KEY = localStorage.getItem('pl_api_key') || '';
+// Restore key on load
+setTimeout(()=>{ const inp=document.getElementById('apiKeyInput'); if(inp&&API_KEY) inp.value=API_KEY; },150);
+
+// ── DARK / LIGHT THEME TOGGLE ──
+let currentTheme = localStorage.getItem('pl_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', currentTheme);
+setTimeout(()=>{ const btn=document.getElementById('themeBtn'); if(btn) btn.textContent=currentTheme==='dark'?'🌙':'☀️'; },100);
+function toggleTheme(){
+  currentTheme = currentTheme==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('pl_theme', currentTheme);
+  const btn=document.getElementById('themeBtn');
+  if(btn) btn.textContent=currentTheme==='dark'?'🌙':'☀️';
+  toast(currentTheme==='dark'?'🌙 Dark Mode':'☀️ Light Mode','Theme switched','green');
+}
+
 function saveKey(){
-  const v=document.getElementById('apiKeyInput').value.trim();if(!v)return;
-  API_KEY=v;const s=document.getElementById('apiStatus');
+  const v=document.getElementById('apiKeyInput').value.trim(); if(!v)return;
+  API_KEY=v; localStorage.setItem('pl_api_key',v);
+  const s=document.getElementById('apiStatus');
   if(v.startsWith('sk-ant-')||v.startsWith('sk-')){
-    s.textContent='CONNECTED ✓';s.className='api-badge on';
+    s.textContent='CONNECTED ✓'; s.className='api-badge on';
     toast('🔑 Connected','Claude AI active — type any UI pattern!','green');
-  }else{s.textContent='CHECK KEY';s.className='api-badge off';toast('⚠️ Key Format','Key should start with sk-ant-...','orange');}
+  }else{ s.textContent='CHECK KEY'; s.className='api-badge off';
+    toast('⚠️ Key Format','Key should start with sk-ant-...','orange');
+  }
 }
 
 async function callAI(messages, maxTokens=800){
